@@ -15,7 +15,7 @@ class DAE:
         self.save_iter = save_iter
         self.shape = shape
 
-        self.dae = Model(n_obs, shape)
+        self.dae = Model((n_obs, shape[0], shape[1]))
 
     def encode(self, x):
         return self.dae.encode(x)

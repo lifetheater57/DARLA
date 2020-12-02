@@ -34,5 +34,5 @@ data:
       new_size: 512
 
 num_epochs: 100
-lr: 1e-4
+lr: 1e-3
 
