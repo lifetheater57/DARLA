@@ -1,13 +1,13 @@
 
 data:
   loaders:
-    batch_size: 4
+    batch_size: 2
     num_workers: 4
   
   files:
-    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/
-    train: train.txt
-    val: val.txt
+    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/
+    train: sample_train.txt #train.txt
+    val: #val.txt
 
   max_samples: -1
 
@@ -17,11 +17,11 @@ data:
       p: 0.5
     - name: resize
       ignore: false
-      new_size: 512
+      new_size: 256
     - name: crop
       ignore: false
-      height: 500
-      width: 500
+      height: 250
+      width: 250
     - name: colorjitter
       ignore: false
       brightness: 0.5
@@ -31,8 +31,7 @@ data:
       
     - name: resize 
       ignore: false
-      new_size: 512
+      new_size: 256
 
 num_epochs: 100
 lr: 1e-4
-
