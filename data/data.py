@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 from imageio import imread
 from torchvision import transforms
 import numpy as np
-from .transforms import get_transforms
+from data.transforms import get_transforms
 from PIL import Image
 import os
 
