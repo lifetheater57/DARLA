@@ -1,10 +1,11 @@
+
 data:
   loaders:
     batch_size: 4
     num_workers: 4
   
   files:
-    base: /home/mila/t/tengmeli/Duckietown_project_fall2020/DARLA/
+    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/
     train: train.txt
     val: val.txt
 
@@ -16,11 +17,11 @@ data:
       p: 0.5
     - name: resize
       ignore: false
-      new_size: 640
+      new_size: 512
     - name: crop
       ignore: false
-      height: 600
-      width: 600
+      height: 500
+      width: 500
     - name: colorjitter
       ignore: false
       brightness: 0.5
@@ -30,4 +31,8 @@ data:
       
     - name: resize 
       ignore: false
-      new_size: 640
+      new_size: 512
+
+num_epochs: 100
+lr: 1e-4
+

@@ -1,56 +1,61 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
+from typing import Tuple, Union
+from torch import Tensor
+from torch import Size
+
 
 class Model(nn.Module):
-    def __init__(self, n_obs, obs_height, obs_width):
-        super(Model, self).__init__()
+    def __init__(self, n_obs, shape):
+        super().__init__()
 
+        obs_height, obs_width = shape
         # Initializing constant params
         kernel = 4
         stride = 2
         filters = [32, 32, 64, 64]
-        
+
         # Computing the dims required by the flattening and unflattening ops.
         in_dims = np.array([obs_height, obs_width])
         out_dims = self.outSize(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[0] * out_dims[1]
-        
+
         # Creating the encoder
         CNN_encoder = nn.Sequential()
 
         for i in range(len(filters)):
             in_size = filters[i - 1] if i > 0 else n_obs
             out_size = filters[i]
-            
+
             module = self.genReLUCNN(in_size, out_size, kernel, stride)
-            module_name = 'enc_conv_relu' + str(i)
-            
+            module_name = "enc_conv_relu" + str(i)
+
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder,
-            nn.Flatten(),
-            torch.Linear(flattened_dims, 128)
+            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
         )
 
         # Creating the decoder
         CNN_decoder = nn.Sequential()
 
-        for i in reverse(range(len(filters))):
+        for i in reversed(range(len(filters))):
             in_size = filters[i]
             out_size = filters[i - 1] if i > 0 else n_obs
-            
+
             module = self.genReLUCNNTranpose(in_size, out_size, kernel, stride)
-            module_name = 'dec_relu_conv' + str(len(filters) - i - 1)
-            
+            module_name = "dec_relu_conv" + str(len(filters) - i - 1)
+
             CNN_decoder.add_module(module_name, module)
 
         self.decoder = nn.Sequential(
-            torch.Linear(128, flattened_dims),
-            nn.Unflatten(1, (filters[-1], out_dims[0], out_dims[1])),
-            CNN_decoder
+            nn.Linear(128, flattened_dims),
+            Unflatten(1, (int(filters[-1]), int(out_dims[0]), int(out_dims[1]))),
+            CNN_decoder,
         )
-        
+
     def forward(self, x):
         return self.decoder(self.encoder(x))
 
@@ -62,20 +67,84 @@ class Model(nn.Module):
 
     def genReLUCNN(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.Conv2d(in_size, out_size, kernel_size, stride),
-            nn.ReLU()
+            nn.Conv2d(in_size, out_size, kernel_size, stride), nn.ReLU()
         )
 
     def genReLUCNNTranpose(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.ReLU(),
-            nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
+            nn.ReLU(), nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
         )
-    
-    def outSize(self, in_size, kernel_size, stride, n = 1):
+
+    def outSize(self, in_size, kernel_size, stride, n=1):
         size = in_size
-        
+
         for _ in range(n):
-            size = round((size - kernel_size) / stride + 1)
-        
+            size = np.round((size - kernel_size) / stride + 1).astype(int)
+
         return size
+
+
+class Unflatten(nn.Module):
+    """
+    """
+
+    NamedShape = Tuple[Tuple[str, int]]
+
+    __constants__ = ["dim", "unflattened_size"]
+    dim: Union[int, str]
+    unflattened_size: Union[Size, NamedShape]
+
+    def __init__(
+        self, dim: Union[int, str], unflattened_size: Union[Size, NamedShape]
+    ) -> None:
+        super(Unflatten, self).__init__()
+
+        if isinstance(dim, int):
+            self._require_tuple_int(unflattened_size)
+        elif isinstance(dim, str):
+            self._require_tuple_tuple(unflattened_size)
+        else:
+            raise TypeError("invalid argument type for dim parameter")
+
+        self.dim = dim
+        self.unflattened_size = unflattened_size
+
+    def _require_tuple_tuple(self, input):
+        if isinstance(input, tuple):
+            for idx, elem in enumerate(input):
+                if not isinstance(elem, tuple):
+                    raise TypeError(
+                        "unflattened_size must be tuple of tuples, "
+                        + "but found element of type {} at pos {}".format(
+                            type(elem).__name__, idx
+                        )
+                    )
+            return
+        raise TypeError(
+            "unflattened_size must be a tuple of tuples, "
+            + "but found type {}".format(type(input).__name__)
+        )
+
+    def _require_tuple_int(self, input):
+        if isinstance(input, tuple):
+            for idx, elem in enumerate(input):
+                if not isinstance(elem, int):
+                    raise TypeError(
+                        "unflattened_size must be tuple of ints, "
+                        + "but found element of type {} at pos {}".format(
+                            type(elem).__name__, idx
+                        )
+                    )
+            return
+        raise TypeError(
+            "unflattened_size must be a tuple of ints, but found type {}".format(
+                type(input).__name__
+            )
+        )
+
+    def forward(self, input: Tensor) -> Tensor:
+        return input.unflatten(self.dim, self.unflattened_size)
+
+    def extra_repr(self) -> str:
+        return "dim={}, unflattened_size={}".format(self.dim, self.unflattened_size)
+
