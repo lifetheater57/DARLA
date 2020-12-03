@@ -37,7 +37,9 @@ class Model(nn.Module):
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
+            CNN_encoder,
+            nn.Flatten(),
+            nn.Linear(flattened_dims, 128)
         )
 
         # Creating the decoder
