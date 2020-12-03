@@ -1,8 +1,9 @@
 import torch
+from comet_ml import Experiment
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
-
+from PIL import Image
 from dae.model import Model
 from dae.visualize import *
 
@@ -49,3 +50,23 @@ class DAE:
             update_viz(epoch, loss.item())
 
         print("DONE")
+
+
+def get_random_mask(H, W):
+    """get binary image of a mask random box area 
+
+    Args:
+        H ([type]): [description]
+        W ([type]): [description]
+    """
+    rng = np.random.default_rng()
+    sample_heights = sorted(rng.choice(H, size=2, replace=False))
+    sample_widths = sorted(rng.choice(W, size=2, replace=False))
+    box = Image.new(
+        "RGB",
+        (sample_width[1] - sample_width[0], sample_height[1] - sample_height[0]),
+        (0, 0, 0),
+    )
+    mask = Image.new("RGB", (W, H), (255, 255, 255))
+    mask.paste(box, (sample_width[0], sample_height[0]))
+    return mask
