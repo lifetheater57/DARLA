@@ -1,7 +1,8 @@
-
+output_path: /miniscratch/tengmeli/DARLA
 data:
+
   loaders:
-    batch_size: 2
+    batch_size: 4
     num_workers: 4
   
   files:
@@ -10,7 +11,8 @@ data:
     val: #val.txt
 
   max_samples: -1
-
+  
+  n_obs: 3 
   transforms:
     - name: hflip
       ignore: true
@@ -35,4 +37,9 @@ data:
 
 num_epochs: 100
 
-lr: 1e-4
+betavae_lr: 1e-4
+beta: 4
+
+dae_lr: 1e-3
+
+save_iter: 20
