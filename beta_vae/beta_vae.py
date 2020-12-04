@@ -43,7 +43,12 @@ class BetaVAE():
                 out, mu, log_var = self.vae(data)
 
                 # calculate loss and update network
-                loss = torch.pow(dae.encode(data) - dae.encode(out), 2).mean() + (self.beta * KL(mu, log_var))
+                x_bar = dae.decode(dae.encode(data))
+                x_hat_bar = dae.encode(dae.encode(out))
+                
+                reconstruction_loss = torch.pow(x_bar - x_hat_bar, 2).mean()
+                loss = reconstruction_loss + (self.beta * KL(mu, log_var))
+                
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
