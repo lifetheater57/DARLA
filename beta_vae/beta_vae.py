@@ -17,13 +17,17 @@ class BetaVAE():
 
         self.n_obs = n_obs
 
-        self.vae = Model(n_obs)
+        # TODO: make 32 (latent_dim) configurable
+        self.vae = Model((n_obs, shape[0], shape[1]), 32)
 
     def encode(self, x):
         return self.vae.encode(x)
 
     def decode(self, z):
         return self.vae.decode(z)
+
+    def represent(self, x):
+        return self.vae.represent(x)
 
     def train(self, history, dae):
         print('Training ß-VAE...', end='', flush=True)

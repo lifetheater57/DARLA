@@ -16,7 +16,7 @@ beta = 4
 save_iter = 20
 
 shape = (28, 28)
-n_obs = shape[0] * shape[1]
+n_obs = 3
 
 # create DAE and ß-VAE and their training history
 dae = DAE(n_obs, num_epochs, batch_size, 1e-3, save_iter, shape)

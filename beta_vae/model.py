@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class Model(nn.Module):
-    def __init__(self, shape):
+    def __init__(self, shape, latent_dim=32):
         super(Model, self).__init__()
 
         # Splitting shape
@@ -12,7 +12,6 @@ class Model(nn.Module):
         kernel = 4
         stride = 2
         filters = [32, 32, 64, 64]
-        latent_dim = 32
 
         # Computing the dims required by the flattening and unflattening ops
         in_dims = np.array([obs_height, obs_width])
@@ -83,6 +82,13 @@ class Model(nn.Module):
 
     def decode(self, z):
         return self.decoder(z)
+
+    def represent(self, x):
+        x = self.encoder(x)
+        mu = self.mu(x)
+        log_var = self.log_var(x)
+
+        return [mu, log_var]
 
     def genReLUCNN(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
