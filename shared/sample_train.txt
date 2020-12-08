@@ -1,0 +1,4 @@
+/home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/sample_data/pt3_0538.png
+/home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/sample_data/pt3_0959.png
+/home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/sample_data/pt3_1259.png
+/home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/sample_data/pt2_1450.png
