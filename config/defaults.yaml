@@ -1,4 +1,6 @@
 output_path: /miniscratch/tengmeli/DARLA
+
+module: "dae" #choose "dae" or "beta_vae"
 data:
 
   loaders:
@@ -13,6 +15,7 @@ data:
   max_samples: -1
   
   n_obs: 3 
+  shape: (512,512)
   transforms:
     - name: hflip
       ignore: true

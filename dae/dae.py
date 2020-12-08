@@ -6,17 +6,19 @@ from torchvision.utils import save_image
 from PIL import Image
 from dae.model import Model
 from dae.visualize import *
+from time import time
 
 
 class DAE:
-    def __init__(self, n_obs, num_epochs, batch_size, lr, save_iter, shape):
+    def __init__(self, n_obs, num_epochs, batch_size, lr, save_iter, shape, exp=None):
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.lr = lr
         self.save_iter = save_iter
         self.shape = shape
-
+        self.global_step = 0
         self.dae = Model(shape)
+        self.exp = exp
 
     def encode(self, x):
         return self.dae.encode(x)
@@ -24,16 +26,26 @@ class DAE:
     def decode(self, z):
         return self.dae.decode(z)
 
-    def train(self, history):
+    def update_net(self, batch, verbose=0):
+        """
+        Args:
+            batch (dict): dictionnary of domain batches
+        """
+        zero_grad(self.dae)
+        g_loss = self.get_g_loss(multi_domain_batch, verbose)
+        g_loss.backward()
+        self.g_opt_step()
+        self.log_losses(model_to_update="G", mode="train")
+
+    def train(self, batches):
+
         print("Training DAE...", end="", flush=True)
 
         optimizer = optim.Adam(self.dae.parameters(), lr=self.lr)
 
         for epoch in range(self.num_epochs):
-
-            minibatches = history.get_minibatches(self.batch_size)
-            for data in minibatches:
-
+            step_start_time = time()
+            for data in batches:
                 out = self.dae(data)
 
                 # calculate loss and update network
@@ -42,12 +54,15 @@ class DAE:
                 loss.backward()
                 optimizer.step()
 
-            if epoch == 0 or epoch % self.save_iter == self.save_iter - 1:
-                pic = out.data.view(out.size(0), 1, self.shape[0], self.shape[1])
-                save_image(pic, "img/betaVae_" + str(epoch + 1) + "_epochs.png")
-
-            # plot loss
-            update_viz(epoch, loss.item())
+            # -----------------
+            # -----  Log  -----
+            # -----------------
+            step_time = time() - step_start_time
+            self.global_step += 1
+            # log in comet ml
+            if self.exp is not None:
+                self.exp.log_metrics(losses, prefix="dae_train", step=self.global_step)
+                self.exp.log_metric("Step-time", step_time, step=self.global_step)
 
         print("DONE")
 
