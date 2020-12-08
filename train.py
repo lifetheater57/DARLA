@@ -102,27 +102,31 @@ def main(opts):
 
     loader = get_loader(opts, "train")
 
-    # TODO add get_shape
+    shape = opts.data.shape
 
-    dae = DAE(
-        opts.data.n_obs,
-        opts.num_epochs,
-        opts.data.loaders.batch_size,
-        opts.dae_lr,
-        opts.save_iter,
-        shape,
-    )
-    beta_vae = BetaVAE(
-        opts.data.n_obs,
-        num_epochs,
-        opts.data.loaders.batch_size,
-        opts.betavae_lr,
-        opts.beta,
-        opts.save_iter,
-        shape,
-    )
+    if opts.module == "dae":
+        module = DAE(
+            opts.data.n_obs,
+            opts.num_epochs,
+            opts.data.loaders.batch_size,
+            opts.dae_lr,
+            opts.save_iter,
+            opts.data.shape,
+            exp,
+        )
+    elif opts.module == "beta_vae":
+        module = BetaVAE(
+            opts.data.n_obs,
+            num_epochs,
+            opts.data.loaders.batch_size,
+            opts.betavae_lr,
+            opts.beta,
+            opts.save_iter,
+            opts.data.shape,
+        )
+        # TODO  Modify betaVAE file
 
-    # TODO  Add training
+    module.train(loader)
 
     # -----------------------------
     # -----  End of training  -----
