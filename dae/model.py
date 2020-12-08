@@ -20,8 +20,8 @@ class Model(nn.Module):
         filters = [32, 32, 64, 64]
 
         # Computing the dims required by the flattening and unflattening ops
-        in_dims = np.array([obs_height, obs_width])
-        out_dims = self.outSize(in_dims, kernel, stride, len(filters))
+        in_dims = [obs_height, obs_width]
+        out_dims = self.outSizeCNN(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
         # Creating the encoder
@@ -37,7 +37,7 @@ class Model(nn.Module):
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
+            CNN_encoder, nn.Flatten(), nn.Linear(int(flattened_dims), 128)
         )
 
         # Creating the decoder
@@ -50,18 +50,28 @@ class Model(nn.Module):
             out_size = self.outSizeCNN(
                 out_dims[-(i + 1)], kernel, stride, transposed=True
             )
-            output_padding = out_dims[-(i + 2)] - out_size
 
+            output_padding = (out_dims[-(i + 2)] - out_size).astype(int)
+            print("out_channels")
+            print(out_channels)
+            print("output padding")
+            print(output_padding)
             module = self.genReLUCNNTranpose(
-                in_channels, out_channels, kernel, stride, output_padding=output_padding
+                in_channels,
+                out_channels,
+                kernel,
+                stride,
+                output_padding=(output_padding[-1][0], output_padding[-1][1]),
             )
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
             CNN_decoder.add_module(module_name, module)
 
         self.decoder = nn.Sequential(
-            nn.Linear(128, flattened_dims),
-            nn.Unflatten(1, (int(filters[-1]), int(out_dims[0]), int(out_dims[1]))),
+            nn.Linear(128, int(flattened_dims)),
+            nn.Unflatten(
+                1, (int(filters[-1]), int(out_dims[-1, 0]), int(out_dims[-1, 1]))
+            ),
             CNN_decoder,
         )
 
@@ -90,22 +100,24 @@ class Model(nn.Module):
                 kernel_size,
                 stride,
                 output_padding=output_padding,
-                padding_mode="duplicate",
+                padding_mode="zeros",
             ),
         )
 
     def outSizeCNN(
         self, in_size, kernel_size, stride, n=1, transposed=False, output_padding=0
     ):
-        size_list = np.zeros((n + 1, 1))
+        size_list = np.zeros((n + 1, 2))
         size_list[0] = in_size
 
         for i in np.arange(n) + 1:
             if transposed:
-                size_list[i] = (size[i - 1] - 1) * stride + kernel_size + output_padding
+                size_list[i] = (
+                    (size_list[i - 1] - 1) * stride + kernel_size + output_padding
+                )
             else:
                 size_list[i] = np.floor(
-                    (size[i - 1] - kernel_size) / stride + 1
+                    (size_list[i - 1] - kernel_size) / stride + 1
                 ).astype(int)
 
-        return size
+        return size_list
