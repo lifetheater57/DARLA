@@ -37,9 +37,7 @@ class Model(nn.Module):
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder,
-            nn.Flatten(),
-            nn.Linear(flattened_dims, 128)
+            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
         )
 
         # Creating the decoder
@@ -53,10 +51,10 @@ class Model(nn.Module):
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
             CNN_decoder.add_module(module_name, module)
-        
+
         self.decoder = nn.Sequential(
             nn.Linear(128, flattened_dims),
-            nn.Unflatten(1, (int(filters[-1]), out_dims[0], out_dims[1])),
+            nn.Unflatten(1, (int(filters[-1]), int(out_dims[0]), int(out_dims[1]))),
             CNN_decoder,
         )
 
@@ -71,14 +69,12 @@ class Model(nn.Module):
 
     def genReLUCNN(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.Conv2d(in_size, out_size, kernel_size, stride), 
-            nn.ReLU()
+            nn.Conv2d(in_size, out_size, kernel_size, stride), nn.ReLU()
         )
 
     def genReLUCNNTranpose(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.ReLU(), 
-            nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
+            nn.ReLU(), nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
         )
 
     def outSize(self, in_size, kernel_size, stride, n=1):
