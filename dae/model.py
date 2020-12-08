@@ -22,16 +22,16 @@ class Model(nn.Module):
         # Computing the dims required by the flattening and unflattening ops
         in_dims = np.array([obs_height, obs_width])
         out_dims = self.outSize(in_dims, kernel, stride, len(filters))
-        flattened_dims = filters[-1] * out_dims[0] * out_dims[1]
+        flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
         # Creating the encoder
         CNN_encoder = nn.Sequential()
 
         for i in range(len(filters)):
-            in_size = filters[i - 1] if i > 0 else obs_channels
-            out_size = filters[i]
-
-            module = self.genReLUCNN(in_size, out_size, kernel, stride)
+            in_channels = filters[i - 1] if i > 0 else obs_channels
+            out_channels = filters[i]            
+            
+            module = self.genReLUCNN(in_channels, out_channels, kernel, stride)
             module_name = "enc_conv_relu" + str(i)
 
             CNN_encoder.add_module(module_name, module)
@@ -46,10 +46,13 @@ class Model(nn.Module):
         CNN_decoder = nn.Sequential()
 
         for i in reversed(range(len(filters))):
-            in_size = filters[i]
-            out_size = filters[i - 1] if i > 0 else obs_channels
+            in_channels = filters[i]
+            out_channels = filters[i - 1] if i > 0 else obs_channels
 
-            module = self.genReLUCNNTranpose(in_size, out_size, kernel, stride)
+            out_size = self.outSizeCNN(out_dims[-(i + 1)], kernel, stride, transposed=True)
+            output_padding = out_dims[-(i + 2)] - out_size
+
+            module = self.genReLUCNNTranpose(in_channels, out_channels, kernel, stride, output_padding=output_padding)
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
             CNN_decoder.add_module(module_name, module)
@@ -75,16 +78,22 @@ class Model(nn.Module):
             nn.ReLU()
         )
 
-    def genReLUCNNTranpose(self, in_size, out_size, kernel_size, stride):
+    def genReLUCNNTranpose(self, in_size, out_size, kernel_size, stride, 
+                           output_padding=0):
         return nn.Sequential(
             nn.ReLU(), 
-            nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
+            nn.ConvTranspose2d(in_size, out_size, kernel_size, stride, output_padding=output_padding, padding_mode="duplicate")
         )
 
-    def outSize(self, in_size, kernel_size, stride, n=1):
-        size = in_size
+    def outSizeCNN(self, in_size, kernel_size, stride, n=1, 
+                   transposed=False, output_padding=0):
+        size_list = np.zeros((n + 1, 1))
+        size_list[0] = in_size
 
-        for _ in range(n):
-            size = np.round((size - kernel_size) / stride + 1).astype(int)
+        for i in np.arange(n) + 1:
+            if transposed:
+                size_list[i] = (size[i - 1] - 1) * stride + kernel_size + output_padding
+            else:
+                size_list[i] = np.floor((size[i - 1] - kernel_size) / stride + 1).astype(int)
 
         return size
