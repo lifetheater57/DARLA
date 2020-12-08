@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
 
 class Model(nn.Module):
     def __init__(self, shape, latent_dim=32):
-        super(Model, self).__init__()
+        super().__init__()
 
         # Splitting shape
         obs_channels, obs_height, obs_width = shape
@@ -31,18 +33,12 @@ class Model(nn.Module):
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder,
-            nn.Flatten(),
-            nn.Linear(flattened_dims, 256)
+            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 256)
         )
 
-        self.mu = nn.Sequential(
-            nn.Linear(256, latent_dim)
-        )
+        self.mu = nn.Sequential(nn.Linear(256, latent_dim))
 
-        self.log_var = nn.Sequential(
-            nn.Linear(256, latent_dim)
-        )
+        self.log_var = nn.Sequential(nn.Linear(256, latent_dim))
 
         # Creating the decoder
         CNN_decoder = nn.Sequential()
@@ -55,11 +51,11 @@ class Model(nn.Module):
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
             CNN_decoder.add_module(module_name, module)
-        
+
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 256)
+            nn.Linear(latent_dim, 256),
             nn.Linear(256, flattened_dims),
-            nn.Unflatten(1, (int(filters[-1]), out_dims[0], out_dims[1])),
+            nn.Unflatten(1, (int(filters[-1]), int(out_dims[0]), int(out_dims[1]))),
             CNN_decoder,
         )
 
@@ -92,14 +88,12 @@ class Model(nn.Module):
 
     def genReLUCNN(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.Conv2d(in_size, out_size, kernel_size, stride), 
-            nn.ReLU()
+            nn.Conv2d(in_size, out_size, kernel_size, stride), nn.ReLU()
         )
 
     def genReLUCNNTranpose(self, in_size, out_size, kernel_size, stride):
         return nn.Sequential(
-            nn.ReLU(), 
-            nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
+            nn.ReLU(), nn.ConvTranspose2d(in_size, out_size, kernel_size, stride)
         )
 
     def outSize(self, in_size, kernel_size, stride, n=1):
