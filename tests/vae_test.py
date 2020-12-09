@@ -13,6 +13,11 @@ from dae.dae import DAE
 from addict import Dict
 
 if __name__ == "__main__":
+    # Set current directory as the current file's directory
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+    
     with open("../config/defaults.yaml", "r") as f:
         opts = yaml.safe_load(f)
 
@@ -27,10 +32,9 @@ if __name__ == "__main__":
     beta = 4
     save_iter = 20
 
-    shape = (h, w)
-    n_obs = 3
+    shape = (3, h, w)
 
     # create DAE and ß-VAE and their training history
-    dae = DAE(n_obs, num_epochs, batch_size, 1e-3, save_iter, shape)
+    dae = DAE(num_epochs, batch_size, 1e-3, save_iter, shape)
     out = dae.dae(batch)
-    print(out)
+    print(out.shape)
