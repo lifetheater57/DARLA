@@ -1,5 +1,7 @@
 import os
 import shutil
+from addict import Dict
+from pathlib import Path
 
 # utils files borrowed from https://github.com/cc-ai/omnigan/blob/master/omnigan/utils.py
 
