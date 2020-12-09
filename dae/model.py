@@ -2,10 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from typing import Tuple, Union
-from torch import Tensor
-from torch import Size
-
 
 class Model(nn.Module):
     def __init__(self, shape):
