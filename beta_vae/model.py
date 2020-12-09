@@ -77,7 +77,13 @@ class Model(nn.Module):
         return z
 
     def decode(self, z):
-        return self.decoder(z)
+        decoded = self.decoder(z)
+        mus = decoded[:, 0:6:2, :, :]
+        sigmas = decoded[:, 1:6:2, :, :]
+        distrib = torch.distributions.Normal(mus, sigmas)
+        dist = torch.distributions.Normal(mus, sigmas)
+        sampled = dist.sample()
+        return sampled
 
     def represent(self, x):
         x = self.encoder(x)
