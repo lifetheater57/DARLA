@@ -20,7 +20,7 @@ class Model(nn.Module):
         filters = [32, 32, 64, 64]
 
         # Computing the dims required by the flattening and unflattening ops
-        in_dims = [obs_height, obs_width]
+        in_dims = np.array([obs_height, obs_width])
         out_dims = self.outSizeCNN(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
@@ -48,20 +48,16 @@ class Model(nn.Module):
             out_channels = filters[i - 1] if i > 0 else obs_channels
 
             out_size = self.outSizeCNN(
-                out_dims[-(i + 1)], kernel, stride, transposed=True
-            )
-
-            output_padding = (out_dims[-(i + 2)] - out_size).astype(int)
-            print("out_channels")
-            print(out_channels)
-            print("output padding")
-            print(output_padding)
+                out_dims[i + 1], kernel, stride, transposed=True
+            )[1]
+            output_padding = tuple((out_dims[i] - out_size).astype("int"))
+            
             module = self.genReLUCNNTranpose(
                 in_channels,
                 out_channels,
                 kernel,
                 stride,
-                output_padding=(output_padding[-1][0], output_padding[-1][1]),
+                output_padding=output_padding
             )
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
