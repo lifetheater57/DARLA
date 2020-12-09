@@ -4,7 +4,6 @@ import torch.optim as optim
 from torchvision.utils import save_image
 
 from beta_vae.model import Model
-from beta_vae.visualize import *
 from time import time
 
 

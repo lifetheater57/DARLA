@@ -5,8 +5,8 @@ import torch.optim as optim
 from torchvision.utils import save_image
 from PIL import Image
 from dae.model import Model
-from dae.visualize import *
 from time import time
+from pathlib import Path
 
 
 class DAE:
@@ -37,13 +37,14 @@ class DAE:
         self.g_opt_step()
         self.log_losses(model_to_update="G", mode="train")
 
-    def train(self, batches):
+    def train(self, batches, output_path, save_n_epochs):
 
         print("Training DAE...", end="", flush=True)
 
         optimizer = optim.Adam(self.dae.parameters(), lr=self.lr)
 
         for epoch in range(self.num_epochs):
+            print("epoch " + str(epoch))
             step_start_time = time()
             for data in batches:
                 out = self.dae(data)
@@ -64,7 +65,27 @@ class DAE:
                 self.exp.log_metrics(loss, prefix="dae_train", step=self.global_step)
                 self.exp.log_metric("Step-time", step_time, step=self.global_step)
 
+            self.save(optimizer, output_path, save_n_epochs)
+
         print("DONE")
+
+    def save(self, optimizer, output_path, save_n_epochs):
+        save_dir = Path(output_path) / Path("checkpoints")
+        save_dir.mkdir(exist_ok=True)
+        save_path = save_dir / "dae_latest_ckpt.pth"
+
+        # Construct relevant state dicts / optims:
+        # Save at least G
+        save_dict = {
+            "G": self.dae.state_dict(),
+            "opt": optimizer.state_dict(),
+            "step": self.global_step,
+        }
+        if self.global_step % save_n_epochs == 0:
+            torch.save(save_dict, save_dir / f"dae_epoch_{self.global_step}_ckpt.pth")
+
+        torch.save(save_dict, save_path)
+        print("saved model in " + save_path)
 
 
 def get_random_mask(H, W):

@@ -11,7 +11,7 @@ from dae.dae import DAE
 from beta_vae.beta_vae import BetaVAE
 
 
-def main(opts):
+def main():
     """
     python train.py --config path_to_config.yaml 
 
@@ -29,7 +29,7 @@ def main(opts):
         help="path to config file",
     )
     parser.add_argument(
-        "--no_comet", type=bool, action="store_true", help="launch comet exp or not"
+        "--no_comet", action="store_true", help="launch comet exp or not"
     )
     parser.add_argument(
         "--comet_tags", type=str, default=None, help="tags for comet exp"
@@ -61,7 +61,7 @@ def main(opts):
         if exp is None:
             # Create new experiment
             print("Starting new experiment")
-            exp = Experiment(project_name="DARLA", **comet_kwargs)
+            exp = Experiment(project_name="DARLA")
             exp.log_asset_folder(
                 str(Path(__file__).parent / "DARLA"),
                 recursive=True,
@@ -106,7 +106,6 @@ def main(opts):
 
     if opts.module == "dae":
         module = DAE(
-            opts.data.n_obs,
             opts.num_epochs,
             opts.data.loaders.batch_size,
             opts.dae_lr,
@@ -126,7 +125,7 @@ def main(opts):
         )
         # TODO  Modify betaVAE file
 
-    module.train(loader)
+    module.train(loader, opts.output_path, opts.save_n_epochs)
 
     # -----------------------------
     # -----  End of training  -----
