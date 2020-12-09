@@ -62,7 +62,7 @@ class DAE:
             self.global_step += 1
             # log in comet ml
             if self.exp is not None:
-                self.exp.log_metric(loss, prefix="dae_train", step=self.global_step)
+                self.exp.log_metric("dae_train_loss", loss, step=self.global_step)
                 self.exp.log_metric("Step-time", step_time, step=self.global_step)
 
             self.save(optimizer, output_path, save_n_epochs)
@@ -85,7 +85,7 @@ class DAE:
             torch.save(save_dict, save_dir / f"dae_epoch_{self.global_step}_ckpt.pth")
 
         torch.save(save_dict, save_path)
-        print("saved model in " + save_path)
+        print("saved model in " + str(save_path))
 
 
 def get_random_mask(H, W):
