@@ -71,7 +71,7 @@ def main():
 
         # log tags
         tags = set()
-        tags += [str(opts.module)]
+        tags.add(str(opts.module))
         if args.comet_tags:
 
             if args.comet_tags:
