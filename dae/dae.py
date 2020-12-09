@@ -62,7 +62,7 @@ class DAE:
             self.global_step += 1
             # log in comet ml
             if self.exp is not None:
-                self.exp.log_metrics(loss, prefix="dae_train", step=self.global_step)
+                self.exp.log_metric(loss, prefix="dae_train", step=self.global_step)
                 self.exp.log_metric("Step-time", step_time, step=self.global_step)
 
             self.save(optimizer, output_path, save_n_epochs)
