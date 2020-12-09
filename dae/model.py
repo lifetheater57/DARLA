@@ -33,7 +33,7 @@ class Model(nn.Module):
             CNN_encoder.add_module(module_name, module)
 
         self.encoder = nn.Sequential(
-            CNN_encoder, nn.Flatten(), nn.Linear(int(flattened_dims), 128)
+            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
         )
 
         # Creating the decoder
@@ -46,7 +46,7 @@ class Model(nn.Module):
             out_size = self.outSizeCNN(
                 out_dims[i + 1], kernel, stride, transposed=True
             )[1]
-            output_padding = tuple((out_dims[i] - out_size).astype("int"))
+            output_padding = tuple(out_dims[i] - out_size)
             
             module = self.genReLUCNNTranpose(
                 in_channels,
@@ -60,9 +60,9 @@ class Model(nn.Module):
             CNN_decoder.add_module(module_name, module)
 
         self.decoder = nn.Sequential(
-            nn.Linear(128, int(flattened_dims)),
+            nn.Linear(128, flattened_dims),
             nn.Unflatten(
-                1, (int(filters[-1]), int(out_dims[-1, 0]), int(out_dims[-1, 1]))
+                1, (filters[-1], int(out_dims[-1, 0]), int(out_dims[-1, 1]))
             ),
             CNN_decoder,
         )
@@ -91,8 +91,7 @@ class Model(nn.Module):
                 out_size,
                 kernel_size,
                 stride,
-                output_padding=output_padding,
-                padding_mode="zeros",
+                output_padding=output_padding
             ),
         )
 
@@ -110,6 +109,6 @@ class Model(nn.Module):
             else:
                 size_list[i] = np.floor(
                     (size_list[i - 1] - kernel_size) / stride + 1
-                ).astype(int)
+                )
 
-        return size_list
+        return size_list.astype(int)
