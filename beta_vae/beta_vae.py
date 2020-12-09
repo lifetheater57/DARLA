@@ -5,6 +5,7 @@ from torchvision.utils import save_image
 
 from beta_vae.model import Model
 from time import time
+from pathlib import Path
 
 
 class BetaVAE:
@@ -34,7 +35,7 @@ class BetaVAE:
     def represent(self, x):
         return self.vae.represent(x)
 
-    def train(self, batches, dae):
+    def train(self, batches, dae, output_path, save_n_epochs):
         print("Training ß-VAE...", end="", flush=True)
 
         def KL(mu, log_var):
@@ -52,7 +53,7 @@ class BetaVAE:
 
                 # calculate loss and update network
                 x_bar = dae.decode(dae.encode(data))
-                x_hat_bar = dae.encode(dae.encode(out))
+                x_hat_bar = dae.decode(dae.encode(out))
 
                 reconstruction_loss = torch.pow(x_bar - x_hat_bar, 2).mean()
                 loss = reconstruction_loss + (self.beta * KL(mu, log_var))
@@ -70,5 +71,25 @@ class BetaVAE:
             if self.exp is not None:
                 self.exp.log_metric("vae_train_loss", loss, step=self.global_step)
                 self.exp.log_metric("Step-time vae", step_time, step=self.global_step)
-
+            self.save(optimizer, output_path, save_n_epochs)
         print("DONE")
+
+    def save(self, optimizer, output_path, save_n_epochs):
+        save_dir = Path(output_path) / Path("checkpoints")
+        save_dir.mkdir(exist_ok=True)
+        save_path = save_dir / "beta_vae_latest_ckpt.pth"
+
+        # Construct relevant state dicts / optims:
+
+        save_dict = {
+            "model": self.vae.state_dict(),
+            "opt": optimizer.state_dict(),
+            "step": self.global_step,
+        }
+        if self.global_step % save_n_epochs == 0:
+            torch.save(
+                save_dict, save_dir / f"beta_vae_epoch_{self.global_step}_ckpt.pth"
+            )
+
+        torch.save(save_dict, save_path)
+        print("saved model in " + str(save_path))

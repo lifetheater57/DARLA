@@ -51,13 +51,9 @@ class Model(nn.Module):
                 out_dims[i + 1], kernel, stride, transposed=True
             )[1]
             output_padding = tuple(out_dims[i] - out_size)
-            
+
             module = self.genReLUCNNTranpose(
-                in_channels,
-                out_channels,
-                kernel,
-                stride,
-                output_padding=output_padding
+                in_channels, out_channels, kernel, stride, output_padding=output_padding
             )
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 
@@ -66,9 +62,7 @@ class Model(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 256),
             nn.Linear(256, flattened_dims),
-            nn.Unflatten(
-                1, (filters[-1], int(out_dims[-1, 0]), int(out_dims[-1, 1]))
-            ),
+            nn.Unflatten(1, (filters[-1], int(out_dims[-1, 0]), int(out_dims[-1, 1]))),
             CNN_decoder,
         )
 
@@ -116,11 +110,7 @@ class Model(nn.Module):
         return nn.Sequential(
             nn.ReLU(),
             nn.ConvTranspose2d(
-                in_size,
-                out_size,
-                kernel_size,
-                stride,
-                output_padding=output_padding
+                in_size, out_size, kernel_size, stride, output_padding=output_padding
             ),
         )
 
@@ -136,8 +126,6 @@ class Model(nn.Module):
                     (size_list[i - 1] - 1) * stride + kernel_size + output_padding
                 )
             else:
-                size_list[i] = np.floor(
-                    (size_list[i - 1] - kernel_size) / stride + 1
-                )
+                size_list[i] = np.floor((size_list[i - 1] - kernel_size) / stride + 1)
 
         return size_list.astype(int)

@@ -2,7 +2,7 @@ output_path: /miniscratch/tengmeli/DARLA
 
 module: "dae" #choose "dae" or "beta_vae"
 
-save_n_epochs: 1
+save_n_epochs: 100
 data:
 
   loaders:
@@ -10,41 +10,41 @@ data:
     num_workers: 4
   
   files:
-    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/shared/
-    train: sample_train.txt #train.txt
+    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/
+    train: train.txt #train.txt
     val: #val.txt
 
   max_samples: -1
   
   n_obs: 3 
-  shape: [3,254,254]
+  shape: [3,640,480]
   transforms:
     - name: hflip
       ignore: true
       p: 0.5
     - name: resize
-      ignore: false
-      new_size: 256
+      ignore: true
+      new_size: [480, 640]
     - name: crop
-      ignore: false
+      ignore: true
       height: 250
       width: 250
     - name: colorjitter
       ignore: false
-      brightness: 0.5
+      brightness: 1
       contrast: 0.5
       saturation: 0.5
       hue: 0.5
       
     - name: resize 
-      ignore: false
+      ignore: true
       new_size: 254
 
-num_epochs: 100
+num_epochs: 10000
 
 betavae_lr: 0.0001
 beta: 1
 
 dae_lr: 0.0001
 
-save_iter: 20
+save_iter: 100

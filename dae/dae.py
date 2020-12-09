@@ -75,9 +75,9 @@ class DAE:
         save_path = save_dir / "dae_latest_ckpt.pth"
 
         # Construct relevant state dicts / optims:
-        # Save at least G
+
         save_dict = {
-            "G": self.dae.state_dict(),
+            "model": self.dae.state_dict(),
             "opt": optimizer.state_dict(),
             "step": self.global_step,
         }

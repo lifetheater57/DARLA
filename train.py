@@ -70,8 +70,10 @@ def main():
             exp.log_asset(str(Path(__file__)))
 
         # log tags
+        tags = set()
+        tags += [str(opts.module)]
         if args.comet_tags:
-            tags = set()
+
             if args.comet_tags:
                 tags.update(args.comet_tags)
             opts.comet.tags = list(tags)
@@ -113,6 +115,8 @@ def main():
             opts.data.shape,
             exp,
         )
+        module.train(loader, opts.output_path, opts.save_n_epochs)
+
     elif opts.module == "beta_vae":
         module = BetaVAE(
             opts.data.n_obs,
@@ -122,10 +126,22 @@ def main():
             opts.beta,
             opts.save_iter,
             opts.data.shape,
+            exp,
         )
-        # TODO  Modify betaVAE file
 
-    module.train(loader, opts.output_path, opts.save_n_epochs)
+        dae = DAE(
+            opts.num_epochs,
+            opts.data.loaders.batch_size,
+            opts.dae_lr,
+            opts.save_iter,
+            opts.data.shape,
+            None,
+        )
+        checkpoint = torch.load(
+            Path(opts.output_path) / Path("checkpoints") / "dae_latest_ckpt.pth"
+        )
+        dae.load_state_dict(checkpoint["model"])
+        module.train(loader, dae, opts.output_path, opts.save_n_epochs)
 
     # -----------------------------
     # -----  End of training  -----
