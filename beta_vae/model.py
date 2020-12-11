@@ -76,20 +76,24 @@ class Model(nn.Module):
 
         return x_hat, mu, log_var
 
+    def sample_latent_space(self, mu, log_var):
+        return mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
+
     def encode(self, x):
         x = self.encoder(x)
         mu = self.mu(x)
         log_var = self.log_var(x)
-        z = mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
+        z = self.sample_latent_space(mu, log_var)
         return z
 
     def decode(self, z):
         decoded = self.decoder(z)
         mus = decoded[:, 0:6:2, :, :]
-        sigmas = decoded[:, 1:6:2, :, :]
-        distrib = torch.distributions.Normal(mus, sigmas)
-        dist = torch.distributions.Normal(mus, sigmas)
-        sampled = dist.sample()
+        log_vars = decoded[:, 1:6:2, :, :]
+        sampled = self.sample_latent_space(mus, log_vars)
+        # distrib = torch.distributions.Normal(mus, sigmas)
+        # dist = torch.distributions.Normal(mus, sigmas)
+        # sampled = dist.sample()
         return sampled
 
     def represent(self, x):
@@ -129,3 +133,4 @@ class Model(nn.Module):
                 size_list[i] = np.floor((size_list[i - 1] - kernel_size) / stride + 1)
 
         return size_list.astype(int)
+
