@@ -3,6 +3,7 @@ from comet_ml import Experiment
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
+from torchvision import transforms
 from PIL import Image
 from dae.model import Model
 from time import time
@@ -41,13 +42,20 @@ class DAE:
 
         print("Training DAE...", end="", flush=True)
 
+        # Initialize optimizer and eraser transform
         optimizer = optim.Adam(self.dae.parameters(), lr=self.lr)
+        eraser = transforms.Lambda(apply_random_mask)
 
         for epoch in range(self.num_epochs):
             print("epoch " + str(epoch))
             step_start_time = time()
             for data in batches:
-                out = self.dae(data)
+                # Apply eraser on batch images
+                erased_data = data.copy()                
+                for i, example in enumerate(erased_data):
+                    erased_data[i] = eraser.lambd(erased_data[i])
+
+                out = self.dae(erased_data)
 
                 # calculate loss and update network
                 loss = torch.pow(data - out, 2).mean()
@@ -87,22 +95,22 @@ class DAE:
         torch.save(save_dict, save_path)
         print("saved model in " + str(save_path))
 
-
-def get_random_mask(H, W):
-    """get binary image of a mask random box area 
+def apply_random_mask(img):
+    """Blank a rectangular region of random dimensions in the image.
 
     Args:
-        H ([type]): [description]
-        W ([type]): [description]
+        img (tensor): The image on which to apply the mask.
     """
-    rng = np.random.default_rng()
-    sample_heights = sorted(rng.choice(H, size=2, replace=False))
-    sample_widths = sorted(rng.choice(W, size=2, replace=False))
-    box = Image.new(
-        "RGB",
-        (sample_width[1] - sample_width[0], sample_height[1] - sample_height[0]),
-        (0, 0, 0),
-    )
-    mask = Image.new("RGB", (W, H), (255, 255, 255))
-    mask.paste(box, (sample_width[0], sample_height[0]))
-    return mask
+    
+    img_c, img_h, img_w = img.shape[-3], img.shape[-2], img.shape[-1]
+    
+    h_values = torch.empty(2).uniform_(0, img_h)
+    w_values = torch.empty(2).uniform_(0, img_w)
+
+    x = h_values.min()
+    y = w_values.min()
+
+    h = torch.abs(h_values[1] - h_values[0])
+    w = torch.abs(w_values[1] - w_values[0])
+
+    return transforms.functional.erase(img, x, y, h, w, 0)
