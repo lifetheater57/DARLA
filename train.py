@@ -140,8 +140,8 @@ def main():
         checkpoint = torch.load(
             Path(opts.output_path) / Path("checkpoints") / "dae_latest_ckpt.pth"
         )
-        dae.load_state_dict(checkpoint["model"])
-        module.train(loader, dae, opts.output_path, opts.save_n_epochs)
+        dae.dae.load_state_dict(checkpoint["model"])
+        module.train(loader, dae.dae, opts.output_path, opts.save_n_epochs)
 
     # -----------------------------
     # -----  End of training  -----
