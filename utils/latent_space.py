@@ -76,7 +76,7 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
         # Decode samples
         decoded_samples = model.decoder(z_samples)
         # Transpose into a shape usable by matplotlib
-        decoded_samples = np.hstack(decoded_samples).transpose(1, 2, 0)
+        decoded_samples = np.hstack(decoded_samples).transpose(2, 1, 0)
         # Reshape into a figure column
         decoded_samples = decoded_samples.reshape(
             (width, height * num_samples, num_channels)
