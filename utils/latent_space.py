@@ -1,11 +1,13 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 #%%
 
 
-def getLatentSpaceStats(encoder, data, return_dataframe=False):
+def getLatentSpaceStats(encoded_data, return_dataframe=False):
     # Encode the data in latent space
-    encoded_data = encoder.encode(data)
+    # encoded_data = encoder.encode(data)
     columns = ["dim" + str(i) for i in range(encoded_data.shape[1])]
     df = pd.DataFrame(data=encoded_data, columns=columns)
 
@@ -16,10 +18,29 @@ def getLatentSpaceStats(encoder, data, return_dataframe=False):
         return df.describe()
 
 
+def get_bounds(loader, encoder, latent=32):
+    """
+    get bounds from the whole dataset
+    """
+    bounds = [(0, 0) for i in range(latent)]
+    for i, elem in enumerate(loader):
+        encoded_data = encoder.encode(elem)
+        stats = getLatentSpaceStats(
+            encoded_data.data.cpu().numpy(), return_dataframe=False
+        )
+        mins = list(stats.loc["min"])
+        maxs = list(stats.loc["max"])
+        bounds = [
+            (min(mins[i], bounds[i][0]), max(maxs[i], bounds[i][1]))
+            for i in range(len(mins))
+        ]
+    return bounds
+
+
 #%%
 
 
-def traversals(decoder, shape, dimensions, bounds, num_samples, state):
+def traversals(model, shape, dimensions, bounds, num_samples, state):
     # Initializing size attributes and figure
     n_dims = len(dimensions)
     width, height, num_channels = shape[2], shape[1], shape[0]
@@ -29,7 +50,7 @@ def traversals(decoder, shape, dimensions, bounds, num_samples, state):
         "cannot broadcast bounds size "
         + str(bounds.shape)
         + " with dimensions size "
-        + str(dimensions.shape)
+        + str(len(dimensions))
     )
 
     # Creating values for the sampling
@@ -44,12 +65,12 @@ def traversals(decoder, shape, dimensions, bounds, num_samples, state):
 
     # Generating images
     for i, dim in enumerate(dimensions):
-        z_samples = np.array([state.copy()] * len(columns[i]))
+        z_samples = torch.stack([state[0].detach().clone()] * len(columns[i]))
         for j, value in enumerate(columns[i]):
-            z_samples[j, dim] = value
+            z_samples[j][dim] = value
 
         # Decode samples
-        decoded_samples = decoder.predict(z_samples)
+        decoded_samples = model.decoder(z_samples)
         # Transpose into a shape usable by matplotlib
         decoded_samples = np.hstack(decoded_samples).transpose(1, 2, 0)
         # Reshape into a figure column
