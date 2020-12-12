@@ -38,6 +38,10 @@ def get_bounds(loader, encoder, latent=32):
 
 
 #%%
+def norm(decoded_samples):
+    decoded_samples = decoded_samples - decoded_samples.min()
+    decoded_samples = decoded_samples / decoded_samples.max()
+    return decoded_samples
 
 
 def traversals(model, shape, dimensions, bounds, num_samples, state):
@@ -78,7 +82,9 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
             (width, height * num_samples, num_channels)
         )
         # Assign to the colomn in the figure
-        figure[(i * width) : ((i + 1) * width)] = decoded_samples
+        figure[(i * width) : ((i + 1) * width)] = (norm(decoded_samples) * 255).astype(
+            int
+        )
 
     plt.figure(figsize=(12, 12))
     start_range = width // 2
