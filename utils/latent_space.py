@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
 #%%
 
@@ -83,24 +84,27 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
         # Decode samples
         decoded_samples = model.decoder(z_samples)
         # Transpose into a shape usable by matplotlib
-        decoded_samples = np.hstack(decoded_samples).transpose(2, 1, 0)
+        print(decoded_samples.shape)
+        decoded_samples = np.hstack(decoded_samples.detach().numpy()).transpose(2, 1, 0)
+        print(decoded_samples.shape)
         # Reshape into a figure column
-        decoded_samples = decoded_samples.reshape(
-            (width, height * num_samples, num_channels)
-        )
+        # decoded_samples = decoded_samples.reshape(
+        #    (width, height * num_samples, num_channels)
+        # )
+        # print(decoded_samples.shape)
         # Assign to the colomn in the figure
         figure[(i * width) : ((i + 1) * width)] = (
-            np.clip(decoded_sample, 0, 1) * 255
+            np.clip(decoded_samples, 0, 1) * 255
         ).astype(int)
 
     plt.figure(figsize=(12, 12))
     start_range = width // 2
     end_range = num_samples * width + start_range + 1
     pixel_range = np.arange(start_range, end_range, width)
-    sample_range_x = np.round(grid_x, 1)
-    sample_range_y = np.round(grid_y, 1)
-    plt.xticks(pixel_range, sample_range_x)
-    plt.yticks(pixel_range, sample_range_y)
+    # sample_range_x = np.round(grid_x, 1)
+    # sample_range_y = np.round(grid_y, 1)
+    plt.xticks(pixel_range)  # , sample_range_x)
+    plt.yticks(pixel_range)  # , sample_range_y)
     plt.xlabel("z - dim 1")
     plt.ylabel("z - dim 2")
     # matplotlib.pyplot.imshow() needs a 2D array, or a 3D array with the third dimension being of shape 3 or 4!
