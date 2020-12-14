@@ -18,23 +18,30 @@ def getLatentSpaceStats(encoded_data, return_dataframe=False):
         return df.describe()
 
 
-def get_bounds(loader, encoder, latent=32):
+def get_bounds(loader, encoder, latent=32, common_bounds=False):
     """
     get bounds from the whole dataset
     """
-    bounds = [(0, 0) for i in range(latent)]
+    bounds = np.zeros((latent, 2))
     for i, elem in enumerate(loader):
         encoded_data = encoder.encode(elem)
         stats = getLatentSpaceStats(
             encoded_data.data.cpu().numpy(), return_dataframe=False
         )
-        mins = list(stats.loc["min"])
-        maxs = list(stats.loc["max"])
-        bounds = [
-            (min(mins[i], bounds[i][0]), max(maxs[i], bounds[i][1]))
-            for i in range(len(mins))
-        ]
-    return bounds
+        mins = stats.loc["min"]
+        maxs = stats.loc["max"]
+
+        bounds = np.array(
+            [
+                np.array([mins, bounds[:, 0]]).min(axis=0),
+                np.array([maxs, bounds[:, 1]]).max(axis=0),
+            ]
+        ).transpose(1, 0)
+
+    if common_bounds:
+        return np.array([bounds[0].min(), bounds[1].max()])
+    else:
+        return bounds
 
 
 #%%
@@ -69,7 +76,7 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
 
     # Generating images
     for i, dim in enumerate(dimensions):
-        z_samples = torch.stack([state[0].detach().clone()] * len(columns[i]))
+        z_samples = torch.stack([state.detach().clone()] * len(columns[i]))
         for j, value in enumerate(columns[i]):
             z_samples[j][dim] = value
 
@@ -82,9 +89,9 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
             (width, height * num_samples, num_channels)
         )
         # Assign to the colomn in the figure
-        figure[(i * width) : ((i + 1) * width)] = (norm(decoded_samples) * 255).astype(
-            int
-        )
+        figure[(i * width) : ((i + 1) * width)] = (
+            np.clip(decoded_sample, 0, 1) * 255
+        ).astype(int)
 
     plt.figure(figsize=(12, 12))
     start_range = width // 2
