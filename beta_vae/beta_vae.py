@@ -64,7 +64,7 @@ class BetaVAE:
 
                 reconstruction_loss = torch.pow(x_bar - x_hat_bar, 2).mean()
                 loss = reconstruction_loss + (self.beta * KL(mu, log_var)).to(
-                    torch.device
+                    self.device
                 )
 
                 optimizer.zero_grad()
