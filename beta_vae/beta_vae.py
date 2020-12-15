@@ -7,6 +7,8 @@ from beta_vae.model import Model
 from time import time
 from pathlib import Path
 
+from utils.latent_space import traversals
+
 
 class BetaVAE:
     def __init__(
@@ -22,9 +24,14 @@ class BetaVAE:
         self.n_obs = n_obs
         self.exp = exp
         self.global_step = 0
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # TODO: make 32 (latent_dim) configurable
         self.vae = Model(shape, 32)
+
+        self.vae.to(self.device)
+        print("Using ...")
+        print(self.device)
 
     def encode(self, x):
         return self.vae.encode(x)
@@ -48,7 +55,7 @@ class BetaVAE:
         for epoch in range(self.num_epochs):
             step_start_time = time()
             for data in batches:
-
+                data = data.to(self.device)
                 out, mu, log_var = self.vae(data)
 
                 # calculate loss and update network
@@ -56,7 +63,9 @@ class BetaVAE:
                 x_hat_bar = dae.decode(dae.encode(out))
 
                 reconstruction_loss = torch.pow(x_bar - x_hat_bar, 2).mean()
-                loss = reconstruction_loss + (self.beta * KL(mu, log_var))
+                loss = reconstruction_loss + (self.beta * KL(mu, log_var)).to(
+                    torch.device
+                )
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -74,6 +83,14 @@ class BetaVAE:
             self.save(optimizer, output_path, save_n_epochs)
         print("DONE")
 
+    def visualize_traversal(self, x):
+        # build sample from image x
+        latent_sample = self.encode(x)
+        decoder = self.vae.decoder
+        shape = self.shape
+
+        # (decoder, shape, dimensions, bounds, num_samples, state)
+
     def save(self, optimizer, output_path, save_n_epochs):
         save_dir = Path(output_path) / Path("checkpoints")
         save_dir.mkdir(exist_ok=True)
@@ -90,6 +107,7 @@ class BetaVAE:
             torch.save(
                 save_dict, save_dir / f"beta_vae_epoch_{self.global_step}_ckpt.pth"
             )
+            print("saved model in " + str(save_path))
 
         torch.save(save_dict, save_path)
         print("saved model in " + str(save_path))
