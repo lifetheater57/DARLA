@@ -8,6 +8,7 @@ from comet_ml import Experiment, ExistingExperiment
 from data.data import *
 from utils.utils import env_to_path, copy_run_files, flatten_opts
 from dae.dae import DAE
+
 from beta_vae.beta_vae import BetaVAE
 
 
@@ -115,12 +116,20 @@ def main():
             opts.data.shape,
             exp,
         )
+        # module.dae.cuda()
+        # if opts.resume != "":
+        #    checkpoint = torch.load(
+        #        Path(opts.output_path) / Path("checkpoints") / opts.resume
+        #     )  # "dae_latest_ckpt.pth")
+
+        #      module.dae.load_state_dict(checkpoint["model"])
+        #      module.dae.
         module.train(loader, opts.output_path, opts.save_n_epochs)
 
     elif opts.module == "beta_vae":
         module = BetaVAE(
             opts.data.n_obs,
-            num_epochs,
+            opts.num_epochs,
             opts.data.loaders.batch_size,
             opts.betavae_lr,
             opts.beta,
@@ -141,6 +150,7 @@ def main():
             Path(opts.output_path) / Path("checkpoints") / "dae_latest_ckpt.pth"
         )
         dae.dae.load_state_dict(checkpoint["model"])
+        # module.vae.cuda()
         module.train(loader, dae.dae, opts.output_path, opts.save_n_epochs)
 
     # -----------------------------
