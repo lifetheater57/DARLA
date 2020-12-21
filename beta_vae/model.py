@@ -45,7 +45,7 @@ class Model(nn.Module):
 
         for i in reversed(range(len(filters))):
             in_channels = filters[i]
-            out_channels = filters[i - 1] if i > 0 else obs_channels
+            out_channels = filters[i - 1] if i > 0 else 2 * obs_channels
 
             out_size = self.outSizeCNN(
                 out_dims[i + 1], kernel, stride, transposed=True
@@ -72,7 +72,7 @@ class Model(nn.Module):
         log_var = self.log_var(x)
 
         z = mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
-        x_hat = self.decoder(z)
+        x_hat = self.decode(z)
 
         return x_hat, mu, log_var
 
