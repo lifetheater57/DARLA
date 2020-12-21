@@ -57,7 +57,6 @@ class DAE:
                 # Apply eraser on batch images
                 erased_data = data.detach().clone()
                 for i, example in enumerate(erased_data):
-                    print(erased_data[i].shape)
                     erased_data[i] = eraser.lambd(erased_data[i])
                 erased_data = erased_data.to(self.device)
 
@@ -111,7 +110,7 @@ def apply_random_mask(img):
     """
 
     img_c, img_h, img_w = img.shape[-3], img.shape[-2], img.shape[-1]
-    print(img_c, img_h, img_w)
+    
     h_values = torch.empty(2).uniform_(0, img_h)
     w_values = torch.empty(2).uniform_(0, img_w)
 
@@ -120,6 +119,5 @@ def apply_random_mask(img):
 
     h = torch.abs(h_values[1] - h_values[0]).type(torch.IntTensor)
     w = torch.abs(w_values[1] - w_values[0]).type(torch.IntTensor)
-    # print(h)
 
     return transforms.functional.erase(img, x, y, h, w, 0)

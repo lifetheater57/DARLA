@@ -88,12 +88,9 @@ class Model(nn.Module):
 
     def decode(self, z):
         decoded = self.decoder(z)
-        mus = decoded[:, 0:6:2, :, :]
-        log_vars = decoded[:, 1:6:2, :, :]
+        mus = decoded[:, 0::2, :, :]
+        log_vars = decoded[:, 1::2, :, :]
         sampled = self.sample_latent_space(mus, log_vars)
-        # distrib = torch.distributions.Normal(mus, sigmas)
-        # dist = torch.distributions.Normal(mus, sigmas)
-        # sampled = dist.sample()
         return sampled
 
     def represent(self, x):

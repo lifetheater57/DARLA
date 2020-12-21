@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
-#%%
-
 
 def getLatentSpaceStats(encoded_data, return_dataframe=False):
     # Encode the data in latent space
