@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,13 +18,15 @@ def getLatentSpaceStats(encoded_data, return_dataframe=False):
         return df.describe()
 
 
-def get_bounds(loader, encoder, latent=32, common_bounds=False):
+def get_bounds(loader, vae, latent=32, common_bounds=False):
     """
     get bounds from the whole dataset
     """
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     bounds = np.zeros((latent, 2))
     for i, elem in enumerate(loader):
-        encoded_data = encoder.encode(elem)
+        elem = elem.to(device)
+        encoded_data = vae.encode(elem)
         stats = getLatentSpaceStats(
             encoded_data.data.cpu().numpy(), return_dataframe=False
         )
@@ -43,18 +46,13 @@ def get_bounds(loader, encoder, latent=32, common_bounds=False):
         return bounds
 
 
-#%%
-def norm(decoded_samples):
-    decoded_samples = decoded_samples - decoded_samples.min()
-    decoded_samples = decoded_samples / decoded_samples.max()
-    return decoded_samples
-
-
-def traversals(model, shape, dimensions, bounds, num_samples, state):
+@torch.no_grad()
+def traversals(model, shape, dimensions, bounds, num_samples, state, filepath):
+    
     # Initializing size attributes and figure
     n_dims = len(dimensions)
-    width, height, num_channels = shape[2], shape[1], shape[0]
-    figure = np.zeros((width * n_dims, height * num_samples, num_channels))
+    width, height, num_channels = shape[-1], shape[-2], shape[-3]
+    figure = np.zeros((height * num_samples, width * n_dims, num_channels))
 
     assert bounds.shape == (2) or bounds.shape == (n_dims, 2), (
         "cannot broadcast bounds size "
@@ -75,36 +73,30 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
 
     # Generating images
     for i, dim in enumerate(dimensions):
-        z_samples = torch.stack([state.detach().clone()] * len(columns[i]))
+        z_samples = torch.stack([state.clone()] * len(columns[i]))
         for j, value in enumerate(columns[i]):
             z_samples[j][dim] = value
 
         # Decode samples
-        decoded_samples = model.decoder(z_samples)
+        decoded_samples = model.decode(z_samples)
         # Transpose into a shape usable by matplotlib
-        # print(decoded_samples.shape)
-        decoded_samples = np.hstack(decoded_samples.detach().numpy()).transpose(2, 1, 0)
-        # print(decoded_samples.shape)
+        decoded_samples = decoded_samples.cpu().numpy().transpose(0, 2, 3, 1)
         # Reshape into a figure column
-        decoded_samples = decoded_samples.reshape(
-            (width, height * num_samples, num_channels)
-        )
-        # print(decoded_samples.shape)
+        decoded_samples = np.vstack(decoded_samples)
         # Assign to the colomn in the figure
-        figure[(i * width) : ((i + 1) * width)] = (
-            np.clip(decoded_samples, 0, 1) * 255
-        ).astype(int)
-
-    plt.figure(figsize=(12, 12))
-    start_range = width // 2
-    end_range = num_samples * width + start_range + 1
-    pixel_range = np.arange(start_range, end_range, width)
-    # sample_range_x = np.round(grid_x, 1)
-    # sample_range_y = np.round(grid_y, 1)
-    plt.xticks(pixel_range)  # , sample_range_x)
-    plt.yticks(pixel_range)  # , sample_range_y)
-    plt.xlabel("z - dim 1")
-    plt.ylabel("z - dim 2")
+        figure[:, (i * width) : ((i + 1) * width)] = (np.clip(decoded_samples, 0, 1) * 255).astype(int)
+        
+    plt.figure(figsize=(128, 48))
+    start_x = width // 2
+    end_x = n_dims * width + start_x
+    start_y = height // 2
+    end_y = num_samples * height + start_y
+    x_range = np.linspace(start_x, end_x, n_dims + 1)
+    y_range = np.linspace(start_y, end_y, num_samples + 1)
+    plt.xticks(x_range, np.arange(len(x_range)))
+    plt.yticks(y_range, np.arange(len(y_range)))
+    plt.xlabel("Dimension")
+    plt.ylabel("Image")
     # matplotlib.pyplot.imshow() needs a 2D array, or a 3D array with the third dimension being of shape 3 or 4!
     # So reshape if necessary
     fig_shape = np.shape(figure)
@@ -112,5 +104,6 @@ def traversals(model, shape, dimensions, bounds, num_samples, state):
         figure = figure.reshape((fig_shape[0], fig_shape[1]))
     # Show image
     plt.imshow(figure)
-    plt.show()
+    plt.savefig(filepath)
+    print("Traversal saved at: " + str(filepath))
 
