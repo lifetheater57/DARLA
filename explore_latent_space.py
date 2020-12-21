@@ -141,8 +141,9 @@ if args.select_state:
         # Read image
         index = int(np.floor(np.random.uniform(len(files))))
         image_file = files[index][:-1]
+        print(image_file)
         im = PIL.Image.open(image_file)
-        im_data = np.array(im).transpose(2,0,1)
+        im_data = np.array(im).transpose(2,0,1) / 255
         shape = im_data.shape
         im_data = im_data.reshape((1, shape[0], shape[1], shape[2]))
         with torch.no_grad():
@@ -159,14 +160,19 @@ if args.select_state:
             # Decode state
             decoded_image = beta_vae.decode(temp_state)
             
-            # Transpose into a shape usable by matplotlib
-            print(decoded_image.shape)
-            decoded_image = decoded_image.cpu().numpy().squeeze(axis=0)
-            decoded_image = decoded_image.transpose(1, 2, 0)
+        # Transpose into a shape usable by matplotlib
+        original_image = im_tensor.cpu().numpy().squeeze(axis=0)
+        original_image = original_image.transpose(1, 2, 0)
+        
+        decoded_image = decoded_image.cpu().numpy().squeeze(axis=0)
+        decoded_image = decoded_image.transpose(1, 2, 0)
 
+        # Create a figure with original image and decoded image
+        figure = np.hstack([original_image, decoded_image])
+        
         # Save image and decoded image together
         plt.figure(figsize=(24, 9))
-        plt.imshow(decoded_image)
+        plt.imshow(figure)
         plt.savefig(state_path)
 
         # Get next user input
