@@ -42,13 +42,20 @@ class DAE:
         self.g_opt_step()
         self.log_losses(model_to_update="G", mode="train")
 
-    def train(self, batches, output_path, save_n_epochs):
+    def train(self, batches, output_path, save_n_epochs, resume=None):
 
         print("Training DAE...", end="", flush=True)
 
         # Initialize optimizer and eraser transform
         self.optimizer = optim.Adam(self.dae.parameters(), lr=self.lr)
         eraser = transforms.Lambda(apply_random_mask)
+        if resume is not None:
+            checkpoint = torch.load(resume)
+            self.dae.load_state_dict(checkpoint["model"])
+            self.optimizer.load_state_dict(checkpoint["opt"])
+            self.global_step = checkpoint["step"]
+            print("resumed from step ")
+            print(self.global_step)
 
         for epoch in range(self.num_epochs):
             print("epoch " + str(epoch))
@@ -57,7 +64,6 @@ class DAE:
                 # Apply eraser on batch images
                 erased_data = data.detach().clone()
                 for i, example in enumerate(erased_data):
-                    print(erased_data[i].shape)
                     erased_data[i] = eraser.lambd(erased_data[i])
                 erased_data = erased_data.to(self.device)
 
@@ -111,7 +117,6 @@ def apply_random_mask(img):
     """
 
     img_c, img_h, img_w = img.shape[-3], img.shape[-2], img.shape[-1]
-    print(img_c, img_h, img_w)
     h_values = torch.empty(2).uniform_(0, img_h)
     w_values = torch.empty(2).uniform_(0, img_w)
 
