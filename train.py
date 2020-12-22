@@ -124,7 +124,14 @@ def main():
 
         #      module.dae.load_state_dict(checkpoint["model"])
         #      module.dae.
-        module.train(loader, opts.output_path, opts.save_n_epochs)
+        module.train(
+            loader,
+            opts.output_path,
+            opts.save_n_epochs,
+            #        resume=Path("/miniscratch/tengmeli/DARLA_small_bs128")
+            #        / Path("checkpoints")
+            #       / "dae_latest_ckpt.pth",
+        )
 
     elif opts.module == "beta_vae":
         module = BetaVAE(
