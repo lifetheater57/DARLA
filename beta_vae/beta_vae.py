@@ -53,6 +53,7 @@ class BetaVAE:
         optimizer = optim.Adam(self.vae.parameters(), lr=self.lr)
 
         for epoch in range(self.num_epochs):
+            print("epoch " + str(epoch))
             step_start_time = time()
             for data in batches:
                 data = data.to(self.device)
@@ -82,14 +83,6 @@ class BetaVAE:
                 self.exp.log_metric("Step-time vae", step_time, step=self.global_step)
             self.save(optimizer, output_path, save_n_epochs)
         print("DONE")
-
-    def visualize_traversal(self, x):
-        # build sample from image x
-        latent_sample = self.encode(x)
-        decoder = self.vae.decoder
-        shape = self.shape
-
-        # (decoder, shape, dimensions, bounds, num_samples, state)
 
     def save(self, optimizer, output_path, save_n_epochs):
         save_dir = Path(output_path) / Path("checkpoints")

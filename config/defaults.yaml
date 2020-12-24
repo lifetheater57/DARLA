@@ -35,10 +35,6 @@ data:
       contrast: 0.5
       saturation: 0.5
       hue: 0.5
-      
-    - name: resize 
-      ignore: true
-      new_size: 254
 
 num_epochs: 10000
 

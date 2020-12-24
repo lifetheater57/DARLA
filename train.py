@@ -30,10 +30,10 @@ def main():
         help="path to config file",
     )
     parser.add_argument(
-        "--no_comet", action="store_true", help="launch comet exp or not"
+        "--no-comet", action="store_true", help="launch comet exp or not"
     )
     parser.add_argument(
-        "--comet_tags", type=str, default=None, help="tags for comet exp"
+        "--comet-tags", type=str, default=None, help="tags for comet exp"
     )
     args = parser.parse_args()
     # -----------------------
@@ -171,52 +171,3 @@ def main():
 if __name__ == "__main__":
 
     main()
-
-"""import torch
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.datasets import MNIST
-
-from dae.dae import DAE
-from beta_vae.beta_vae import BetaVAE
-from history import History
-
-# hyperparameters
-num_epochs = 100
-batch_size = 128
-lr = 1e-4
-beta = 4
-save_iter = 20
-
-shape = (28, 28)
-n_obs = 3
-
-# create DAE and ß-VAE and their training history
-dae = DAE(n_obs, num_epochs, batch_size, 1e-3, save_iter, shape)
-beta_vae = BetaVAE(n_obs, num_epochs, batch_size, 1e-4, beta, save_iter, shape)
-history = History()
-
-# fill autoencoder training history with examples
-print('Filling history...', end='', flush=True)
-
-transformation = transforms.Compose([
-    transforms.ColorJitter(),
-    transforms.ToTensor()
-])
-
-dataset = MNIST('data', transform=transformation)
-dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
-
-for data in dataloader:
-    img, _ = data
-    img = img.view(img.size(0), -1).numpy().tolist()
-    history.store(img)
-print('DONE')
-
-# train DAE
-dae.train(history)
-
-# train ß-VAE
-beta_vae.train(history, dae)
-"""
