@@ -24,7 +24,7 @@ class Model(nn.Module):
         CNN_encoder = nn.Sequential()
 
         for i in range(len(filters)):
-            in_channels = filters[i - 1] if i > 0 else obs_channels
+            in_channels = filters[i - 1] if i > 0 else (2 * obs_channels)
             out_channels = filters[i]
 
             module = self.genReLUCNN(in_channels, out_channels, kernel, stride)
@@ -72,6 +72,7 @@ class Model(nn.Module):
         log_var = self.log_var(x)
 
         z = mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
+
         x_hat = self.decoder(z)
 
         return x_hat, mu, log_var
@@ -90,10 +91,10 @@ class Model(nn.Module):
         decoded = self.decoder(z)
         mus = decoded[:, 0:6:2, :, :]
         log_vars = decoded[:, 1:6:2, :, :]
-        sampled = self.sample_latent_space(mus, log_vars)
+        # sampled = self.sample_latent_space(mus, log_vars)
         # distrib = torch.distributions.Normal(mus, sigmas)
-        # dist = torch.distributions.Normal(mus, sigmas)
-        # sampled = dist.sample()
+        dist = torch.distributions.Normal(mus, torch.exp(log_vars))
+        sampled = dist.sample()
         return sampled
 
     def represent(self, x):
