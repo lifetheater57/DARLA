@@ -35,6 +35,12 @@ def main():
     parser.add_argument(
         "--comet-tags", type=str, default=None, help="tags for comet exp"
     )
+    parser.add_argument(
+        "--dae-checkpoint", type=str, default=None, help="dae checkpoint from which to start the training"
+    )
+    parser.add_argument(
+        "--vae-checkpoint", type=str, default=None, help="vae checkpoint from which to start the training"
+    )
     args = parser.parse_args()
     # -----------------------
     # -----  Load opts  -----
@@ -99,6 +105,25 @@ def main():
 
     print("Running model in", opts.output_path)
 
+    # ------------------------------
+    # -----  Load checkpoints  -----
+    # ------------------------------
+
+    checkpoints_root = Path(opts.output_path) / Path("checkpoints")
+    
+    if args.dae_checkpoint is not None:
+        dae_checkpoint_path = checkpoints_root / args.dae_checkpoint
+        if not dae_checkpoint_path.is_file():
+            if opts.module == "beta_vae":
+                dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
+            else:
+                dae_checkpoint_path = None
+
+    if args.vae_checkpoint is not None:
+        vae_checkpoint_path = checkpoints_root / args.vae_checkpoint
+        if not vae_checkpoint_path.is_file():
+            vae_checkpoint_path = None
+
     # -------------------
     # -----  Train  -----
     # -------------------
@@ -116,21 +141,11 @@ def main():
             opts.data.shape,
             exp,
         )
-        # module.dae.cuda()
-        # if opts.resume != "":
-        #    checkpoint = torch.load(
-        #        Path(opts.output_path) / Path("checkpoints") / opts.resume
-        #     )  # "dae_latest_ckpt.pth")
-
-        #      module.dae.load_state_dict(checkpoint["model"])
-        #      module.dae.
         module.train(
             loader,
             opts.output_path,
             opts.save_n_epochs,
-            #        resume=Path("/miniscratch/tengmeli/DARLA_small_bs128")
-            #        / Path("checkpoints")
-            #       / "dae_latest_ckpt.pth",
+            dae_checkpoint_path
         )
 
     elif opts.module == "beta_vae":
@@ -144,7 +159,6 @@ def main():
             opts.data.shape,
             exp,
         )
-
         dae = DAE(
             opts.num_epochs,
             opts.data.loaders.batch_size,
@@ -153,12 +167,14 @@ def main():
             opts.data.shape,
             None,
         )
-        checkpoint = torch.load(
-            Path(opts.output_path) / Path("checkpoints") / "dae_latest_ckpt.pth"
-        )
-        dae.dae.load_state_dict(checkpoint["model"])
-        # module.vae.cuda()
-        module.train(loader, dae.dae, opts.output_path, opts.save_n_epochs)
+        dae_checkpoint = torch.load(dae_checkpoint_path)
+        dae.dae.load_state_dict(dae_checkpoint["model"])        
+        module.train(
+            loader, 
+            dae.dae, 
+            opts.output_path, 
+            opts.save_n_epochs,
+            vae_checkpoint_path)
 
     # -----------------------------
     # -----  End of training  -----

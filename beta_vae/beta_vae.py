@@ -42,7 +42,7 @@ class BetaVAE:
     def represent(self, x):
         return self.vae.represent(x)
 
-    def train(self, batches, dae, output_path, save_n_epochs):
+    def train(self, batches, dae, output_path, save_n_epochs, resume=None):
         print("Training ß-VAE...", end="", flush=True)
 
         def KL(mu, log_var):
@@ -51,9 +51,15 @@ class BetaVAE:
             return kl
 
         optimizer = optim.Adam(self.vae.parameters(), lr=self.lr)
+        if resume is not None:
+            checkpoint = torch.load(resume)
+            self.vae.load_state_dict(checkpoint["model"])
+            self.optimizer.load_state_dict(checkpoint["opt"])
+            self.global_step = checkpoint["step"]
+            print("resumed from step " + str(self.global_step))
 
-        for epoch in range(self.num_epochs):
-            print("epoch " + str(epoch))
+        for _ in range(self.num_epochs):
+            print("epoch " + str(self.global_step))
             step_start_time = time()
             for data in batches:
                 data = data.to(self.device)

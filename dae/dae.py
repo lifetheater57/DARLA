@@ -54,11 +54,10 @@ class DAE:
             self.dae.load_state_dict(checkpoint["model"])
             self.optimizer.load_state_dict(checkpoint["opt"])
             self.global_step = checkpoint["step"]
-            print("resumed from step ")
-            print(self.global_step)
+            print("resumed from step " + str(self.global_step))
 
-        for epoch in range(self.num_epochs):
-            print("epoch " + str(epoch))
+        for _ in range(self.num_epochs):
+            print("epoch " + str(self.global_step))
             step_start_time = time()
             for data in batches:
                 # Apply eraser on batch images
