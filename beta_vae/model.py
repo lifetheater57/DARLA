@@ -24,7 +24,7 @@ class Model(nn.Module):
         CNN_encoder = nn.Sequential()
 
         for i in range(len(filters)):
-            in_channels = filters[i - 1] if i > 0 else (2 * obs_channels)
+            in_channels = filters[i - 1] if i > 0 else obs_channels
             out_channels = filters[i]
 
             module = self.genReLUCNN(in_channels, out_channels, kernel, stride)
