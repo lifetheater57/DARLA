@@ -111,18 +111,16 @@ def main():
 
     checkpoints_root = Path(opts.output_path) / Path("checkpoints")
     
+    dae_checkpoint_path = None
     if args.dae_checkpoint is not None:
         dae_checkpoint_path = checkpoints_root / args.dae_checkpoint
-        if not dae_checkpoint_path.is_file():
-            if opts.module == "beta_vae":
-                dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
-            else:
-                dae_checkpoint_path = None
+    if dae_checkpoint_path is None or not dae_checkpoint_path.is_file():
+        if opts.module == "beta_vae":
+            dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
 
+    vae_checkpoint_path = None
     if args.vae_checkpoint is not None:
         vae_checkpoint_path = checkpoints_root / args.vae_checkpoint
-        if not vae_checkpoint_path.is_file():
-            vae_checkpoint_path = None
 
     # -------------------
     # -----  Train  -----
