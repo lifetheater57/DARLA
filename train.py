@@ -74,17 +74,37 @@ def main():
                 workspace=opts.comet.workspace
             )
             exp.log_asset_folder(
-                str(Path(__file__).parent / "DARLA"),
+                str(Path(__file__).parent / "beta_vae"),
                 recursive=True,
                 log_file_name=True,
             )
+            exp.log_asset_folder(
+                str(Path(__file__).parent / "config"),
+                recursive=True,
+                log_file_name=True,
+            )
+            exp.log_asset_folder(
+                str(Path(__file__).parent / "dae"),
+                recursive=True,
+                log_file_name=True,
+            )
+            exp.log_asset_folder(
+                str(Path(__file__).parent / "data"),
+                recursive=True,
+                log_file_name=True,
+            )
+            exp.log_asset_folder(
+                str(Path(__file__).parent / "utils"),
+                recursive=True,
+                log_file_name=True,
+            )
+            exp.log_asset(str(Path(__file__).parent / "README.md"))
             exp.log_asset(str(Path(__file__)))
 
         # log tags
         tags = set()
         tags.add(str(opts.module))
         if args.comet_tags:
-
             if args.comet_tags:
                 tags.update(args.comet_tags)
             opts.comet.tags = list(tags)
