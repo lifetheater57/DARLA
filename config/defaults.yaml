@@ -44,3 +44,8 @@ beta: 1
 dae_lr: 0.001
 
 save_iter: 100
+
+comet:
+  api_key: "None"
+  project_name: "darla"
+  workspace: "lifetheater57"

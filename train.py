@@ -68,7 +68,11 @@ def main():
         if exp is None:
             # Create new experiment
             print("Starting new experiment")
-            exp = Experiment(project_name="DARLA")
+            exp = Experiment(
+                api_key=opts.comet.api_key,
+                project_name=opts.comet.project_name,
+                workspace=opts.comet.workspace
+            )
             exp.log_asset_folder(
                 str(Path(__file__).parent / "DARLA"),
                 recursive=True,
