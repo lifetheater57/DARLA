@@ -38,6 +38,8 @@ data:
 
 num_epochs: 10000
 
+latent_dim: 32
+
 betavae_lr: 0.0001
 beta: 1
 
