@@ -50,6 +50,12 @@ parser.add_argument(
     default=None,
     help="dimentions to traverse"
 )
+parser.add_argument(
+    "--vae-checkpoint", type=str, default=None, help="vae model checkpoint to use"
+)
+parser.add_argument(
+    "--bounds-checkpoint", type=str, default=None, help="vae latent space bounds checkpoint to use"
+)
 args = parser.parse_args()
 
 # -----------------------
@@ -65,9 +71,27 @@ print("Config output_path:", opts.output_path)
 
 loader = get_loader(opts, "train")
 
-# ------------------------
-# -----  Load model  -----
-# ------------------------
+# ------------------------------
+# -----  Load checkpoints  -----
+# ------------------------------
+
+checkpoints_root = Path(opts.output_path) / Path("checkpoints")
+    
+vae_checkpoint_path = None
+if args.vae_checkpoint is not None:
+    vae_checkpoint_path = checkpoints_root / args.vae_checkpoint
+if vae_checkpoint_path is None or not vae_checkpoint_path.is_file():
+    vae_checkpoint_path = checkpoints_root / "beta_vae_latest_ckpt.pth"
+
+bounds_path = None
+if args.bounds_checkpoint is not None:
+    bounds_path = checkpoints_root / args.vae_checkpoint
+if bounds_path is None or not bounds_path.is_file():
+    bounds_path = checkpoints_root / "bounds_latest_ckpt.npy"
+
+# -------------------------
+# -----  Load models  -----
+# -------------------------
 
 if args.select_state or args.generate_bounds or args.generate_traversals:
     beta_vae = BetaVAE(
@@ -81,19 +105,14 @@ if args.select_state or args.generate_bounds or args.generate_traversals:
         None
     )
 
-    checkpoint = torch.load(
-        Path(opts.output_path) / Path("checkpoints") / "beta_vae_latest_ckpt.pth"
-    )
-
-    beta_vae.vae.load_state_dict(checkpoint["model"])
+    vae_checkpoint = torch.load(vae_checkpoint_path)
+    beta_vae.vae.load_state_dict(vae_checkpoint["model"])
 
 # -----------------------------
 # -----  Generate bounds  -----
 # -----------------------------
 
 bounds = None
-
-bounds_path = Path(opts.output_path) / Path("checkpoints") / "bounds_latest_ckpt.npy"
 
 if Path(bounds_path).is_file():
     bounds = np.load(bounds_path)
