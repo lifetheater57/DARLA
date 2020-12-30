@@ -87,6 +87,13 @@ def copy_run_files(opts: Dict) -> None:
             if o.exists():
                 shutil.copyfile(p, o / p.name)
 
+def tensor_to_PIL(image_tensor):
+    image_array = image_tensor.cpu().numpy().squeeze(axis=0)
+    image_array = image_array.transpose(1, 2, 0)
+    image_array = (image_array * 255).astype(np.uint8)
+    image = PIL.Image.fromarray(image_array)
+    return image_array, image
+
 def apply_random_mask(img):
     """Blank a rectangular region of random dimensions in the image.
 
