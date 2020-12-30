@@ -2,8 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
+from torchvision import transforms
 
 from beta_vae.model import Model
+from utils.utils import apply_random_mask
+
 from time import time
 from pathlib import Path
 
@@ -49,6 +52,11 @@ class BetaVAE:
             return kl
 
         optimizer = optim.Adam(self.vae.parameters(), lr=self.lr)
+        
+        # Create an eraser to a apply a random occlusion window if required
+        if dae is None:
+            eraser = transforms.Lambda(apply_random_mask)
+        
         if resume is not None:
             checkpoint = torch.load(resume)
             self.vae.load_state_dict(checkpoint["model"])
@@ -60,12 +68,27 @@ class BetaVAE:
             print("epoch " + str(self.global_step))
             step_start_time = time()
             for data in batches:
+                if dae is None:
+                    # Apply eraser on batch images
+                    erased_data = data.detach().clone()
+                    for i, example in enumerate(erased_data):
+                        erased_data[i] = eraser.lambd(erased_data[i])
+                    erased_data = erased_data.to(self.device)
+                else:
+                    # Keep the data unchanged
+                    erased_data = data.to(self.device)
+                
+                # Pass the image through the beta-VAE
+                out, mu, log_var = self.vae(erased_data)
                 data = data.to(self.device)
-                out, mu, log_var = self.vae(data)
 
-                # calculate loss and update network
-                x_bar = dae.decode(dae.encode(data))
-                x_hat_bar = dae.decode(dae.encode(out))
+                # Get values to compute the loss
+                if dae is None:
+                    x_bar = data
+                    x_hat_bar = out
+                else:
+                    x_bar = dae.decode(dae.encode(data))
+                    x_hat_bar = dae.decode(dae.encode(out))
 
                 reconstruction_loss = torch.pow(x_bar - x_hat_bar, 2).mean()
                 loss = reconstruction_loss + (self.beta * KL(mu, log_var)).to(

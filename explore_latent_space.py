@@ -69,22 +69,23 @@ loader = get_loader(opts, "train")
 # -----  Load model  -----
 # ------------------------
 
-beta_vae = BetaVAE(
-    opts.num_epochs,
-    opts.data.loaders.batch_size,
-    opts.betavae_lr,
-    opts.beta,
-    opts.latent_dim,
-    opts.save_iter,
-    opts.data.shape,
-    None
-)
+if args.select_state or args.generate_bounds or args.generate_traversals:
+    beta_vae = BetaVAE(
+        opts.num_epochs,
+        opts.data.loaders.batch_size,
+        opts.betavae_lr,
+        opts.beta,
+        opts.latent_dim,
+        opts.save_iter,
+        opts.data.shape,
+        None
+    )
 
-checkpoint = torch.load(
-    Path(opts.output_path) / Path("checkpoints") / "beta_vae_latest_ckpt.pth"
-)
+    checkpoint = torch.load(
+        Path(opts.output_path) / Path("checkpoints") / "beta_vae_latest_ckpt.pth"
+    )
 
-beta_vae.vae.load_state_dict(checkpoint["model"])
+    beta_vae.vae.load_state_dict(checkpoint["model"])
 
 # -----------------------------
 # -----  Generate bounds  -----

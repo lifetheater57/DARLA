@@ -44,6 +44,11 @@ def main():
         help="vae checkpoint from which to start the training"
     )
     parser.add_argument(
+        "--no-dae", 
+        action="store_true", 
+        help="train the VAE without using a DAE for the loss"
+    )
+    parser.add_argument(
         "--exp-id", 
         type=str, 
         default=None, 
@@ -174,7 +179,10 @@ def main():
         dae_checkpoint_path = checkpoints_root / args.dae_checkpoint
     if dae_checkpoint_path is None or not dae_checkpoint_path.is_file():
         if opts.module == "beta_vae":
-            dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
+            if args.no_dae:
+                dae_checkpoint_path = None
+            else:
+                dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
 
     vae_checkpoint_path = None
     if args.vae_checkpoint is not None:
@@ -215,19 +223,25 @@ def main():
             opts.data.shape,
             exp,
         )
-        dae = DAE(
-            opts.num_epochs,
-            opts.data.loaders.batch_size,
-            opts.dae_lr,
-            opts.save_iter,
-            opts.data.shape,
-            None,
-        )
-        dae_checkpoint = torch.load(dae_checkpoint_path)
-        dae.dae.load_state_dict(dae_checkpoint["model"])        
+        
+        # Create the associated DAE and load its checkpoint if required
+        if not args.no_dae:
+            dae = DAE(
+                opts.num_epochs,
+                opts.data.loaders.batch_size,
+                opts.dae_lr,
+                opts.save_iter,
+                opts.data.shape,
+                None,
+            )
+            
+            dae_checkpoint = torch.load(dae_checkpoint_path)
+            dae.dae.load_state_dict(dae_checkpoint["model"])
+        
+        # Train the vae
         module.train(
             loader, 
-            dae.dae, 
+            dae.dae if not args.no_dae else None, 
             opts.output_path, 
             opts.save_n_epochs,
             vae_checkpoint_path)
