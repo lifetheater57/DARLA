@@ -2,6 +2,10 @@ import os
 import shutil
 from addict import Dict
 from pathlib import Path
+import numpy as np
+import PIL
+import torch
+from torchvision import transforms
 
 # utils files borrowed from https://github.com/cc-ai/omnigan/blob/master/omnigan/utils.py
 
@@ -82,3 +86,23 @@ def copy_run_files(opts: Dict) -> None:
             o = Path(opts.output_path)
             if o.exists():
                 shutil.copyfile(p, o / p.name)
+
+def apply_random_mask(img):
+    """Blank a rectangular region of random dimensions in the image.
+
+    Args:
+        img (tensor): The image on which to apply the mask.
+    """
+
+    img_c, img_h, img_w = img.shape[-3], img.shape[-2], img.shape[-1]
+
+    h_values = torch.empty(2).uniform_(0, img_h)
+    w_values = torch.empty(2).uniform_(0, img_w)
+
+    x = h_values.min().type(torch.IntTensor)
+    y = w_values.min().type(torch.IntTensor)
+
+    h = torch.abs(h_values[1] - h_values[0]).type(torch.IntTensor)
+    w = torch.abs(w_values[1] - w_values[0]).type(torch.IntTensor)
+
+    return transforms.functional.erase(img, x, y, h, w, 0)

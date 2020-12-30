@@ -4,7 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision.utils import save_image
 from torchvision import transforms
-from PIL import Image
+
+from utils.utils import apply_random_mask
 from dae.model import Model
 from time import time
 from pathlib import Path
@@ -106,24 +107,4 @@ class DAE:
 
         torch.save(save_dict, save_path)
         print("saved model in " + str(save_path))
-
-
-def apply_random_mask(img):
-    """Blank a rectangular region of random dimensions in the image.
-
-    Args:
-        img (tensor): The image on which to apply the mask.
-    """
-
-    img_c, img_h, img_w = img.shape[-3], img.shape[-2], img.shape[-1]
-
-    h_values = torch.empty(2).uniform_(0, img_h)
-    w_values = torch.empty(2).uniform_(0, img_w)
-
-    x = h_values.min().type(torch.IntTensor)
-    y = w_values.min().type(torch.IntTensor)
-
-    h = torch.abs(h_values[1] - h_values[0]).type(torch.IntTensor)
-    w = torch.abs(w_values[1] - w_values[0]).type(torch.IntTensor)
-
-    return transforms.functional.erase(img, x, y, h, w, 0)
+        
