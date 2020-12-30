@@ -34,8 +34,17 @@ class Model(nn.Module):
 
             CNN_encoder.add_module(module_name, module)
 
+        # Initialization of the layer on top of the CNN of the encoder 
+        # and its weights and biases
+        encoder_linear_layer = nn.Linear(flattened_dims, 256)
+        nn.init.kaiming_normal_(encoder_linear_layer.weight, nonlinearity="relu")
+
+        # Creation of the encoder
         self.encoder = nn.Sequential(
-            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 256)
+            CNN_encoder, 
+            nn.Flatten(), 
+            encoder_linear_layer,
+            nn.ReLU()
         )
 
         self.mu = nn.Sequential(nn.Linear(256, latent_dim))
@@ -61,8 +70,15 @@ class Model(nn.Module):
 
             CNN_decoder.add_module(module_name, module)
 
+        # Initialization of the layer on top of the CNN of the decoder 
+        # and its weights and biases
+        decoder_linear_layer = nn.Linear(latent_dim, 256)
+        nn.init.kaiming_normal_(decoder_linear_layer.weight, nonlinearity="relu")
+        
+        # Creation of the decoder 
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 256),
+            decoder_linear_layer,
+            nn.ReLU(),
             nn.Linear(256, flattened_dims),
             nn.Unflatten(1, (filters[-1], int(out_dims[-1, 0]), int(out_dims[-1, 1]))),
             CNN_decoder,
