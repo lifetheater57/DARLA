@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+from utils.model import outSizeCNN, genReLUCNN, genReLUCNNTranpose
+
 
 class Model(nn.Module):
     def __init__(self, shape):
@@ -17,7 +19,7 @@ class Model(nn.Module):
 
         # Computing the dims required by the flattening and unflattening ops
         in_dims = np.array([obs_height, obs_width])
-        out_dims = self.outSizeCNN(in_dims, kernel, stride, len(filters))
+        out_dims = outSizeCNN(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
         # Creating the encoder
@@ -27,7 +29,7 @@ class Model(nn.Module):
             in_channels = filters[i - 1] if i > 0 else obs_channels
             out_channels = filters[i]
 
-            module = self.genReLUCNN(in_channels, out_channels, kernel, stride)
+            module = genReLUCNN(in_channels, out_channels, kernel, stride)
             module_name = "enc_conv_relu" + str(i)
 
             CNN_encoder.add_module(module_name, module)
@@ -43,12 +45,12 @@ class Model(nn.Module):
             in_channels = filters[i]
             out_channels = filters[i - 1] if i > 0 else obs_channels
 
-            out_size = self.outSizeCNN(
+            out_size = outSizeCNN(
                 out_dims[i + 1], kernel, stride, transposed=True
             )[1]
             output_padding = tuple(out_dims[i] - out_size)
             
-            module = self.genReLUCNNTranpose(
+            module = genReLUCNNTranpose(
                 in_channels,
                 out_channels,
                 kernel,
@@ -75,40 +77,3 @@ class Model(nn.Module):
 
     def decode(self, z):
         return self.decoder(z)
-
-    def genReLUCNN(self, in_size, out_size, kernel_size, stride):
-        return nn.Sequential(
-            nn.Conv2d(in_size, out_size, kernel_size, stride), nn.ReLU()
-        )
-
-    def genReLUCNNTranpose(
-        self, in_size, out_size, kernel_size, stride, output_padding=0
-    ):
-        return nn.Sequential(
-            nn.ReLU(),
-            nn.ConvTranspose2d(
-                in_size,
-                out_size,
-                kernel_size,
-                stride,
-                output_padding=output_padding
-            ),
-        )
-
-    def outSizeCNN(
-        self, in_size, kernel_size, stride, n=1, transposed=False, output_padding=0
-    ):
-        size_list = np.zeros((n + 1, 2))
-        size_list[0] = in_size
-
-        for i in np.arange(n) + 1:
-            if transposed:
-                size_list[i] = (
-                    (size_list[i - 1] - 1) * stride + kernel_size + output_padding
-                )
-            else:
-                size_list[i] = np.floor(
-                    (size_list[i - 1] - kernel_size) / stride + 1
-                )
-
-        return size_list.astype(int)
