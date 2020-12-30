@@ -13,11 +13,6 @@ from beta_vae.beta_vae import BetaVAE
 
 
 def main():
-    """
-    python train.py --config path_to_config.yaml 
-
-    """
-
     # -----------------------------
     # -----  Parse arguments  -----
     # -----------------------------
@@ -33,7 +28,11 @@ def main():
         "--no-comet", action="store_true", help="launch comet exp or not"
     )
     parser.add_argument(
-        "--comet-tags", type=str, default=None, help="tags for comet exp"
+        "--comet-tags", 
+        type=str, 
+        nargs='+', 
+        default=None, 
+        help="tags for comet exp"
     )
     parser.add_argument(
         "--dae-checkpoint", type=str, default=None, help="dae checkpoint from which to start the training"
@@ -101,15 +100,15 @@ def main():
             exp.log_asset(str(Path(__file__).parent / "README.md"))
             exp.log_asset(str(Path(__file__)))
 
-        # log tags
-        tags = set()
-        tags.add(str(opts.module))
-        if args.comet_tags:
-            if args.comet_tags:
-                tags.update(args.comet_tags)
-            opts.comet.tags = list(tags)
-            print("Logging to comet.ml with tags", opts.comet.tags)
+            # Add tags to experiment
+            tags = [str(opts.module)]
+            if args.comet_tags is not None:
+                for tag in args.comet_tags:
+                    tags.append(tag)
+            opts.comet.tags = tags
             exp.add_tags(opts.comet.tags)
+        
+        print("Logging to comet.ml with tags", opts.comet.tags)
 
         # Log all opts
         exp.log_parameters(flatten_opts(opts))
