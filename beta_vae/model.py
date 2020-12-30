@@ -22,9 +22,8 @@ class Model(nn.Module):
         out_dims = outSizeCNN(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
-        # Creating the encoder
+        # Creation of the encoder's CNN
         CNN_encoder = nn.Sequential()
-
         for i in range(len(filters)):
             in_channels = filters[i - 1] if i > 0 else obs_channels
             out_channels = filters[i]
@@ -47,13 +46,12 @@ class Model(nn.Module):
             nn.ReLU()
         )
 
+        # Creation of the latent space mean and variance layers
         self.mu = nn.Sequential(nn.Linear(256, latent_dim))
-
         self.log_var = nn.Sequential(nn.Linear(256, latent_dim))
 
-        # Creating the decoder
+        # Creation of the decoder's CNN
         CNN_decoder = nn.Sequential()
-
         for i in reversed(range(len(filters))):
             in_channels = filters[i]
             out_channels = filters[i - 1] if i > 0 else 2 * obs_channels
@@ -85,11 +83,14 @@ class Model(nn.Module):
         )
 
     def forward(self, x):
-        x = self.encoder(x)
+        # Encode the example
+        x = self.encoder(x)        
+        # Get mean and variance of the latent variables for the example
         mu = self.mu(x)
         log_var = self.log_var(x)
-
-        z = mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
+        # Sample from the latent space
+        z = self.sample_latent_space(mu, log_var)        
+        # Decode the sample
         x_hat = self.decode(z)
 
         return x_hat, mu, log_var
@@ -98,15 +99,23 @@ class Model(nn.Module):
         return mu + torch.mul(torch.exp(log_var / 2.0), torch.randn_like(log_var))
 
     def encode(self, x):
+        # Encode the example
         x = self.encoder(x)
+        # Get mean and variance of the latent variables from the encoded example
         mu = self.mu(x)
         log_var = self.log_var(x)
+        # Sample from the latent space
         z = self.sample_latent_space(mu, log_var)
+        
         return z
 
     def decode(self, z):
+        # Decode the sample
         decoded = self.decoder(z)
+        # Get mean and variance of the output values from the decoded sample
         mus = decoded[:, 0::2, :, :]
         log_vars = decoded[:, 1::2, :, :]
+        # Sample from the parameters
         sampled = self.sample_latent_space(mus, log_vars)
+        
         return sampled

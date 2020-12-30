@@ -14,6 +14,8 @@ import PIL
 import torchvision
 import matplotlib.pyplot as plt
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 # -----------------------------
 # -----  Parse arguments  -----
 # -----------------------------
@@ -130,11 +132,11 @@ if args.generate_bounds or bounds is None:
 # --------------------------
 
 # Initialize the state
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 scale = bounds[:, 1] - bounds[:, 0]
 state = np.random.normal(scale=scale, size=opts.latent_dim)
 
 if args.state is not None:
+    # Use the state given in argument
     state = args.state
     print("Using state: " + str(state))
     #if len(args.state) == opts.latent_dim:
@@ -142,14 +144,17 @@ if args.state is not None:
     #    print("Need a state with " + str(opts.latent_dim) + "dimensions.")
     #    print("Keeping random state.")
 
+# Send the state to the device to use
 state = torch.Tensor(state).to(device)
 
 if args.select_state:
+    # Print instructions
     print("Commands:")
     print("\tn - pass to next state")
     print("\ts - to select the state")
     print("\tq - to select the state")
     
+    # Open image file list
     file = open(opts.data.files.base + opts.data.files.train, 'r')
     files = file.readlines()
 
@@ -166,10 +171,14 @@ if args.select_state:
         image_file = files[index][:-1]
         im = PIL.Image.open(image_file)     
         print("Image file:", image_file)
+        
+        # Format the image according to model requirements
         im_data = np.array(im).transpose(2,0,1) / 255
         shape = im_data.shape
         im_data = im_data.reshape((1, shape[0], shape[1], shape[2]))
+        
         with torch.no_grad():
+            # Resize according to model requirements
             im_tensor = torch.Tensor(im_data).to(device)
             im_tensor = torchvision.transforms.functional.resize(im_tensor, opts.data.shape[-2:])
 
@@ -201,6 +210,7 @@ if args.select_state:
         # Get next user input
         user_input = input()
 
+        # Save the stat as the current state to use if required
         if user_input == 's':
             state = temp_state
             user_input = 'n'
@@ -210,13 +220,17 @@ if args.select_state:
 # ---------------------------------
 
 if args.generate_traversals:
+    # Get dimension list from arguments
     dimensions = args.dimensions
 
     if dimensions is None:
+        # Select all dimensions of the latent space
         dimensions = range(opts.latent_dim)
 
+    # Set the path of the traversals figure's png
     traversal_path = Path(opts.output_path) / Path("img") / "traversals.png"
 
+    # Generate the traversals figure
     latent_space.traversals(
         beta_vae.vae,
         opts.data.shape,

@@ -25,7 +25,9 @@ def main():
         help="path to config file",
     )
     parser.add_argument(
-        "--no-comet", action="store_true", help="launch comet exp or not"
+        "--no-comet", 
+        action="store_true", 
+        help="launch comet exp or not"
     )
     parser.add_argument(
         "--comet-tags", 
@@ -35,7 +37,10 @@ def main():
         help="tags for comet exp"
     )
     parser.add_argument(
-        "--dae-checkpoint", type=str, default=None, help="dae checkpoint from which to start the training"
+        "--dae-checkpoint", 
+        type=str, 
+        default=None, 
+        help="dae checkpoint from which to start the training"
     )
     parser.add_argument(
         "--vae-checkpoint", 
@@ -55,6 +60,7 @@ def main():
         help="Comet experience id to resume"
     )
     args = parser.parse_args()
+    
     # -----------------------
     # -----  Load opts  -----
     # -----------------------
@@ -172,8 +178,10 @@ def main():
     # -----  Load checkpoints  -----
     # ------------------------------
 
+    # Create checkpoints root paths
     checkpoints_root = Path(opts.output_path) / Path("checkpoints")
     
+    # Create dae checkpoint path if required
     dae_checkpoint_path = None
     if args.dae_checkpoint is not None:
         dae_checkpoint_path = checkpoints_root / args.dae_checkpoint
@@ -184,6 +192,7 @@ def main():
             else:
                 dae_checkpoint_path = checkpoints_root / "dae_latest_ckpt.pth"
 
+    # Create vae checkpoint path if required
     vae_checkpoint_path = None
     if args.vae_checkpoint is not None:
         vae_checkpoint_path = checkpoints_root / args.vae_checkpoint
@@ -192,11 +201,13 @@ def main():
     # -----  Train  -----
     # -------------------
 
+    # Create data loader and get data properties
     loader = get_loader(opts, "train")
-
     shape = opts.data.shape
 
+    # Create and train the required model
     if opts.module == "dae":
+        # Create the DAE
         module = DAE(
             opts.num_epochs,
             opts.data.loaders.batch_size,
@@ -205,14 +216,16 @@ def main():
             opts.data.shape,
             exp,
         )
+        
+        # Train the DAE
         module.train(
             loader,
             opts.output_path,
             opts.save_n_epochs,
             dae_checkpoint_path
         )
-
     elif opts.module == "beta_vae":
+        # Create the beta-VAE
         module = BetaVAE(
             opts.num_epochs,
             opts.data.loaders.batch_size,
@@ -252,7 +265,6 @@ def main():
 
     print("Done training")
     # kill_job(opts.jobID)
-
 
 if __name__ == "__main__":
 

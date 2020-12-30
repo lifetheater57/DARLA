@@ -22,9 +22,8 @@ class Model(nn.Module):
         out_dims = outSizeCNN(in_dims, kernel, stride, len(filters))
         flattened_dims = filters[-1] * out_dims[-1, 0] * out_dims[-1, 1]
 
-        # Creating the encoder
+        # Creation of the encoder's CNN
         CNN_encoder = nn.Sequential()
-
         for i in range(len(filters)):
             in_channels = filters[i - 1] if i > 0 else obs_channels
             out_channels = filters[i]
@@ -34,13 +33,15 @@ class Model(nn.Module):
 
             CNN_encoder.add_module(module_name, module)
 
+        # Creation of the encoder
         self.encoder = nn.Sequential(
-            CNN_encoder, nn.Flatten(), nn.Linear(flattened_dims, 128)
+            CNN_encoder, 
+            nn.Flatten(), 
+            nn.Linear(flattened_dims, 128)
         )
 
-        # Creating the decoder
+        # Creation of the decoder's CNN
         CNN_decoder = nn.Sequential()
-
         for i in reversed(range(len(filters))):
             in_channels = filters[i]
             out_channels = filters[i - 1] if i > 0 else obs_channels
@@ -61,6 +62,7 @@ class Model(nn.Module):
 
             CNN_decoder.add_module(module_name, module)
 
+        # Creation of the decoder 
         self.decoder = nn.Sequential(
             nn.Linear(128, flattened_dims),
             nn.Unflatten(

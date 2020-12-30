@@ -61,7 +61,7 @@ def traversals(model, shape, dimensions, bounds, num_samples, state, filepath):
         + str(len(dimensions))
     )
 
-    # Creating values for the sampling
+    # Creation of the values for the sampling
     if len(bounds.shape) == 1:
         min_val = bounds[0]
         max_val = bounds[1]
@@ -86,7 +86,10 @@ def traversals(model, shape, dimensions, bounds, num_samples, state, filepath):
         # Assign to the colomn in the figure
         figure[:, (i * width) : ((i + 1) * width)] = (np.clip(decoded_samples, 0, 1) * 255).astype(int)
         
+    # Creation of the figure
     plt.figure(figsize=(128, 48))
+    
+    # Axis formatting
     start_x = width // 2
     end_x = n_dims * width + start_x
     start_y = height // 2
@@ -95,15 +98,20 @@ def traversals(model, shape, dimensions, bounds, num_samples, state, filepath):
     y_range = np.linspace(start_y, end_y, num_samples + 1)
     plt.xticks(x_range, np.arange(len(x_range)))
     plt.yticks(y_range, np.arange(len(y_range)))
+    
+    # Axis label creation
     plt.xlabel("Dimension")
     plt.ylabel("Image")
+    
     # matplotlib.pyplot.imshow() needs a 2D array, or a 3D array with the third dimension being of shape 3 or 4!
     # So reshape if necessary
     fig_shape = np.shape(figure)
     if fig_shape[2] == 1:
         figure = figure.reshape((fig_shape[0], fig_shape[1]))
+    
     # Show image
     plt.imshow(figure)
+    # Save image
     plt.savefig(filepath)
     print("Traversal saved at: " + str(filepath))
 
