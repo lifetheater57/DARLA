@@ -206,7 +206,6 @@ def main():
 
     elif opts.module == "beta_vae":
         module = BetaVAE(
-            opts.data.n_obs,
             opts.num_epochs,
             opts.data.loaders.batch_size,
             opts.betavae_lr,
