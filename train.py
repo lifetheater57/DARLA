@@ -38,7 +38,16 @@ def main():
         "--dae-checkpoint", type=str, default=None, help="dae checkpoint from which to start the training"
     )
     parser.add_argument(
-        "--vae-checkpoint", type=str, default=None, help="vae checkpoint from which to start the training"
+        "--vae-checkpoint", 
+        type=str, 
+        default=None, 
+        help="vae checkpoint from which to start the training"
+    )
+    parser.add_argument(
+        "--exp-id", 
+        type=str, 
+        default=None, 
+        help="Comet experience id to resume"
     )
     args = parser.parse_args()
     # -----------------------
@@ -53,8 +62,10 @@ def main():
     opts.output_path = str(env_to_path(opts.output_path))
     print("Config output_path:", opts.output_path)
 
-    exp = comet_previous_id = None
-    # create output_path if it doesn't exist
+    comet_previous_id = args.exp_id
+    exp = None
+    
+    # Create output_path if it doesn't exist
     Path(opts.output_path).mkdir(parents=True, exist_ok=True)
 
     # Copy the opts's sbatch_file to output_path
@@ -64,7 +75,7 @@ def main():
         # ----------------------------------
         # -----  Set Comet Experiment  -----
         # ----------------------------------
-        if exp is None:
+        if comet_previous_id is None:
             # Create new experiment
             print("Starting new experiment")
             exp = Experiment(
@@ -107,6 +118,30 @@ def main():
                     tags.append(tag)
             opts.comet.tags = tags
             exp.add_tags(opts.comet.tags)
+        else:
+            # Resuming experiment
+            print("Resuming experiment")
+            exp = ExistingExperiment(
+                api_key=opts.comet.api_key,
+                previous_experiment=comet_previous_id
+            )
+            
+            # List current experiment tags
+            tags = [str(opts.module)]
+            if args.comet_tags is not None:
+                for tag in args.comet_tags:
+                    tags.append(tag)
+            
+            # Check tags coherence with previous experiment tags
+            opts_tags = opts.comet.tags.copy()
+            for tag in tags:
+                if tag in opts_tags:
+                    opts_tags.remove(tag)
+                else:
+                    print("Warning: tag", tag, "was not in previous comet experiment tags.")
+            
+            for tag in opts_tags:
+                print("Warning: tag", tag, "was in previous comet experiment, but not in the current experiment.")
         
         print("Logging to comet.ml with tags", opts.comet.tags)
 
