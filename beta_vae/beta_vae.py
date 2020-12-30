@@ -21,8 +21,7 @@ class BetaVAE:
         self.latent_dim = latent_dim
         self.save_iter = save_iter
         self.shape = shape  # c*h*w
-
-        self.n_obs = n_obs
+        
         self.exp = exp
         self.global_step = 0
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
