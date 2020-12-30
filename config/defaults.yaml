@@ -15,8 +15,7 @@ data:
     val: #val.txt
 
   max_samples: -1
-  
-  n_obs: 3 
+
   shape: [3, 480, 640]
   transforms:
     - name: hflip

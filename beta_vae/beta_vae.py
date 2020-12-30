@@ -12,12 +12,13 @@ from utils.latent_space import traversals
 
 class BetaVAE:
     def __init__(
-        self, n_obs, num_epochs, batch_size, lr, beta, save_iter, shape, exp=None
+        self, num_epochs, batch_size, lr, beta, latent_dim, save_iter, shape, exp=None
     ):
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.lr = lr
         self.beta = beta
+        self.latent_dim = latent_dim
         self.save_iter = save_iter
         self.shape = shape  # c*h*w
 
@@ -26,9 +27,7 @@ class BetaVAE:
         self.global_step = 0
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        # TODO: make 32 (latent_dim) configurable
-        self.vae = Model(shape, 32)
-
+        self.vae = Model(shape, self.latent_dim)
         self.vae.to(self.device)
         print("Using ...")
         print(self.device)
@@ -47,7 +46,7 @@ class BetaVAE:
 
         def KL(mu, log_var):
             kl = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-            kl /= mu.size(0) * self.n_obs
+            kl /= mu.size(0) * self.shape[0]
             return kl
 
         optimizer = optim.Adam(self.vae.parameters(), lr=self.lr)

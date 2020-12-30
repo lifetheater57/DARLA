@@ -177,6 +177,7 @@ def main():
             opts.data.loaders.batch_size,
             opts.betavae_lr,
             opts.beta,
+            opts.latent_dim,
             opts.save_iter,
             opts.data.shape,
             exp,

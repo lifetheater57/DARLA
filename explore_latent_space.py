@@ -70,11 +70,11 @@ loader = get_loader(opts, "train")
 # ------------------------
 
 beta_vae = BetaVAE(
-    opts.data.n_obs,
     opts.num_epochs,
     opts.data.loaders.batch_size,
     opts.betavae_lr,
     opts.beta,
+    opts.latent_dim,
     opts.save_iter,
     opts.data.shape,
     None
