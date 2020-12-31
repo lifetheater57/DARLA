@@ -122,7 +122,7 @@ if Path(bounds_path).is_file():
 if args.generate_bounds or bounds is None:
     if bounds is None:
         print("Automatically generating latent space dimension bounds.")
-    bounds = latent_space.get_bounds(loader, beta_vae.vae)
+    bounds = latent_space.get_bounds(loader, beta_vae.vae, opts.latent_dim)
 
     np.save(bounds_path, bounds)
     print("Latent space dimension bounds saved at: " + str(bounds_path))
