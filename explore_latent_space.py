@@ -176,6 +176,7 @@ if args.select_state:
         im_data = np.array(im).transpose(2,0,1) / 255
         shape = im_data.shape
         im_data = im_data.reshape((1, shape[0], shape[1], shape[2]))
+        im_data = np.vstack([im_data] * opts.data.loaders.batch_size)
         
         with torch.no_grad():
             # Resize according to model requirements

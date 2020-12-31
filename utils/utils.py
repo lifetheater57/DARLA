@@ -88,7 +88,9 @@ def copy_run_files(opts: Dict) -> None:
                 shutil.copyfile(p, o / p.name)
 
 def tensor_to_PIL(image_tensor):
-    image_array = image_tensor.cpu().numpy().squeeze(axis=0)
+    image_array = image_tensor.cpu().numpy()
+    if len(image_array.shape) == 4:
+        image_array = image_array[0]
     image_array = image_array.transpose(1, 2, 0)
     image_array = (image_array * 255).astype(np.uint8)
     image = PIL.Image.fromarray(image_array)
