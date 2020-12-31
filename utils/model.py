@@ -5,11 +5,12 @@ def genReLUCNN(in_size, out_size, kernel_size, stride):
     # Initialize the CNN
     cnn = nn.Conv2d(in_size, out_size, kernel_size, stride)
     # Initialize the CNN weights with a He normal distribution
-    nn.init.kaiming_normal_(cnn.weight, nonlinearity="relu")
+    nn.init.kaiming_normal_(cnn.weight, a=0.01, nonlinearity="leaky_relu")
     
     return nn.Sequential(
-        cnn, 
-        nn.ReLU()
+        cnn,
+        nn.BatchNorm2d(out_size),
+        nn.LeakyReLU()
     )
 
 def genReLUCNNTranpose(
@@ -24,11 +25,12 @@ def genReLUCNNTranpose(
         output_padding=output_padding
     )
     # Initialize the transposed CNN weights with a He normal distribution
-    nn.init.kaiming_normal_(cnnTransposed.weight, mode="fan_out", nonlinearity="relu")
+    nn.init.kaiming_normal_(cnnTransposed.weight, a=0.01, nonlinearity="leaky_relu")
     
     return nn.Sequential(
-        nn.ReLU(),
-        cnnTransposed
+        cnnTransposed,
+        nn.BatchNorm2d(out_size),
+        nn.LeakyReLU()
     )
 
 def outSizeCNN(

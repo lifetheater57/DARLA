@@ -114,4 +114,6 @@ def apply_random_mask(img):
     h = torch.abs(h_values[1] - h_values[0]).type(torch.IntTensor)
     w = torch.abs(w_values[1] - w_values[0]).type(torch.IntTensor)
 
-    return transforms.functional.erase(img, x, y, h, w, 0)
+    noise = torch.empty((img_c, h, w)).uniform_()
+
+    return transforms.functional.erase(img, x, y, h, w, noise)

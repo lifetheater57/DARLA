@@ -15,7 +15,7 @@ class Model(nn.Module):
         # Initializing constant params
         kernel = 4
         stride = 2
-        filters = [32, 32, 64, 64]
+        filters = [32, 64, 128, 256]
 
         # Computing the dims required by the flattening and unflattening ops
         in_dims = np.array([obs_height, obs_width])
@@ -36,14 +36,15 @@ class Model(nn.Module):
         # Initialization of the layer on top of the CNN of the encoder 
         # and its weights and biases
         encoder_linear_layer = nn.Linear(flattened_dims, 256)
-        nn.init.kaiming_normal_(encoder_linear_layer.weight, nonlinearity="relu")
+        nn.init.kaiming_normal_(encoder_linear_layer.weight, a=0.01, nonlinearity="leaky_relu")
 
         # Creation of the encoder
         self.encoder = nn.Sequential(
             CNN_encoder, 
             nn.Flatten(), 
             encoder_linear_layer,
-            nn.ReLU()
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU()
         )
 
         # Creation of the latent space mean and variance layers
@@ -54,7 +55,7 @@ class Model(nn.Module):
         CNN_decoder = nn.Sequential()
         for i in reversed(range(len(filters))):
             in_channels = filters[i]
-            out_channels = filters[i - 1] if i > 0 else 2 * obs_channels
+            out_channels = filters[i - 1] if i > 0 else obs_channels#2 * obs_channels
 
             out_size = outSizeCNN(
                 out_dims[i + 1], kernel, stride, transposed=True
@@ -71,12 +72,13 @@ class Model(nn.Module):
         # Initialization of the layer on top of the CNN of the decoder 
         # and its weights and biases
         decoder_linear_layer = nn.Linear(latent_dim, 256)
-        nn.init.kaiming_normal_(decoder_linear_layer.weight, nonlinearity="relu")
+        nn.init.kaiming_normal_(decoder_linear_layer.weight, a=0.01, nonlinearity="leaky_relu")
         
         # Creation of the decoder 
         self.decoder = nn.Sequential(
             decoder_linear_layer,
-            nn.ReLU(),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(),
             nn.Linear(256, flattened_dims),
             nn.Unflatten(1, (filters[-1], int(out_dims[-1, 0]), int(out_dims[-1, 1]))),
             CNN_decoder,
@@ -112,10 +114,10 @@ class Model(nn.Module):
     def decode(self, z):
         # Decode the sample
         decoded = self.decoder(z)
-        # Get mean and variance of the output values from the decoded sample
+        """# Get mean and variance of the output values from the decoded sample
         mus = decoded[:, 0::2, :, :]
         log_vars = decoded[:, 1::2, :, :]
         # Sample from the parameters
-        sampled = self.sample_latent_space(mus, log_vars)
+        sampled = self.sample_latent_space(mus, log_vars)"""
         
-        return sampled
+        return decoded#sampled
