@@ -86,6 +86,15 @@ def main():
         # ----------------------------------
         # -----  Set Comet Experiment  -----
         # ----------------------------------
+        
+        # List current experiment tags
+        tags = [str(opts.module)]
+        if args.no_dae:
+            tags.append("no_dae")
+        if args.comet_tags is not None:
+            for tag in args.comet_tags:
+                tags.append(tag)
+            
         if comet_previous_id is None:
             # Create new experiment
             print("Starting new experiment")
@@ -123,10 +132,6 @@ def main():
             exp.log_asset(str(Path(__file__)))
 
             # Add tags to experiment
-            tags = [str(opts.module)]
-            if args.comet_tags is not None:
-                for tag in args.comet_tags:
-                    tags.append(tag)
             opts.comet.tags = tags
             exp.add_tags(opts.comet.tags)
         else:
@@ -136,12 +141,6 @@ def main():
                 api_key=opts.comet.api_key,
                 previous_experiment=comet_previous_id
             )
-            
-            # List current experiment tags
-            tags = [str(opts.module)]
-            if args.comet_tags is not None:
-                for tag in args.comet_tags:
-                    tags.append(tag)
             
             # Check tags coherence with previous experiment tags
             opts_tags = opts.comet.tags.copy()
