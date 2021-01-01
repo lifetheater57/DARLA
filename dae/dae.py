@@ -12,12 +12,11 @@ from pathlib import Path
 
 
 class DAE:
-    def __init__(self, num_epochs, batch_size, lr, save_iter, shape, exp=None):
+    def __init__(self, num_epochs, batch_size, lr, shape, exp=None):
         # Save parameters
         self.num_epochs = num_epochs
         self.batch_size = batch_size
         self.lr = lr
-        self.save_iter = save_iter
         self.shape = shape
         self.dae = Model(shape)
         self.exp = exp

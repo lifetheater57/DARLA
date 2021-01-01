@@ -1,18 +1,15 @@
-output_path: /miniscratch/tengmeli/DARLA
+output_path: ../DARLA_output
 
 module: "dae" #choose "dae" or "beta_vae"
 
 save_n_epochs: 100
 data:
-
   loaders:
     batch_size: 4
     num_workers: 4
-  
   files:
-    base: /home/mila/t/tengmeli/challenge-aido_LF-baseline-RL-sim-pytorch/DARLA/
-    train: train.txt #train.txt
-    val: #val.txt
+    base: ./shared/
+    train: train.txt
 
   max_samples: -1
 
@@ -44,9 +41,7 @@ beta: 1
 
 dae_lr: 0.001
 
-save_iter: 100
-
 comet:
   api_key: "None"
-  project_name: "darla"
-  workspace: "lifetheater57"
+  project_name: "None"
+  workspace: "None"

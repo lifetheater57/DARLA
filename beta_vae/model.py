@@ -63,7 +63,11 @@ class Model(nn.Module):
             output_padding = tuple(out_dims[i] - out_size)
 
             module = genReLUCNNTranpose(
-                in_channels, out_channels, kernel, stride, output_padding=output_padding
+                in_channels,
+                out_channels,
+                kernel,
+                stride,
+                output_padding=output_padding
             )
             module_name = "dec_relu_conv" + str(len(filters) - i - 1)
 

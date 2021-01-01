@@ -102,7 +102,6 @@ if args.select_state or args.generate_bounds or args.generate_traversals:
         opts.betavae_lr,
         opts.beta,
         opts.latent_dim,
-        opts.save_iter,
         opts.data.shape,
         None
     )

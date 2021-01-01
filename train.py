@@ -211,7 +211,6 @@ def main():
             opts.num_epochs,
             opts.data.loaders.batch_size,
             opts.dae_lr,
-            opts.save_iter,
             opts.data.shape,
             exp,
         )
@@ -231,7 +230,6 @@ def main():
             opts.betavae_lr,
             opts.beta,
             opts.latent_dim,
-            opts.save_iter,
             opts.data.shape,
             exp,
         )
@@ -242,7 +240,6 @@ def main():
                 opts.num_epochs,
                 opts.data.loaders.batch_size,
                 opts.dae_lr,
-                opts.save_iter,
                 opts.data.shape,
                 None,
             )

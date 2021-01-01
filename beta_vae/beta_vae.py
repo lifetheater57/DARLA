@@ -13,7 +13,7 @@ from pathlib import Path
 
 class BetaVAE:
     def __init__(
-        self, num_epochs, batch_size, lr, beta, latent_dim, save_iter, shape, exp=None
+        self, num_epochs, batch_size, lr, beta, latent_dim, shape, exp=None
     ):
         # Save parameters
         self.num_epochs = num_epochs
@@ -21,7 +21,6 @@ class BetaVAE:
         self.lr = lr
         self.beta = beta
         self.latent_dim = latent_dim
-        self.save_iter = save_iter
         self.shape = shape  # c*h*w
         self.exp = exp
 

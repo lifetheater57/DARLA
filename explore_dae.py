@@ -81,7 +81,6 @@ dae = DAE(
     opts.num_epochs,
     opts.data.loaders.batch_size,
     opts.dae_lr,
-    opts.save_iter,
     opts.data.shape,
     None
 )
