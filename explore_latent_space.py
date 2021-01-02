@@ -50,7 +50,7 @@ parser.add_argument(
     type=int,
     nargs='+',
     default=None,
-    help="dimentions to traverse"
+    help="dimensions to traverse"
 )
 parser.add_argument(
     "--vae-checkpoint", type=str, default=None, help="vae model checkpoint to use"

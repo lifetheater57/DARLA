@@ -15,7 +15,7 @@ class Model(nn.Module):
         # Initializing constant params
         kernel = 4
         stride = 2
-        filters = [32, 64, 128, 256]
+        filters = [32, 64, 128, 256, 512]
 
         # Computing the dims required by the flattening and unflattening ops
         in_dims = np.array([obs_height, obs_width])

@@ -25,7 +25,7 @@ parser.add_argument(
     help="path to config file",
 )
 parser.add_argument(
-    "--dae-output", action="store_true", help="generate the latent space dimension bounds"
+    "--dae-output", action="store_true", help="generate images to see the original image and its reconstruction by the DAE"
 )
 parser.add_argument(
     "--dae-checkpoint", type=str, default=None, help="dae model checkpoint to use"

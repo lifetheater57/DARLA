@@ -30,11 +30,10 @@ if __name__ == "__main__":
     batch_size = opts.data.loaders.batch_size
     lr = opts.lr
     beta = 4
-    save_iter = 20
 
     shape = (3, h, w)
 
     # create DAE and ß-VAE and their training history
-    dae = DAE(num_epochs, batch_size, 1e-3, save_iter, shape)
+    dae = DAE(num_epochs, batch_size, 1e-3, shape)
     out = dae.dae(batch)
     print(out.shape)
